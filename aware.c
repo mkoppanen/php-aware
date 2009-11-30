@@ -62,7 +62,20 @@ PHP_FUNCTION(aware_event_get)
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &mod_name, &mod_name_len, &uuid, &uuid_len) != SUCCESS) {
 		return;
 	}
-	php_aware_storage_get(mod_name, uuid, return_value TSRMLS_CC);
+	php_aware_storage_get_multi(mod_name, uuid, return_value TSRMLS_CC);
+	return;
+}
+
+/* TODO: should this return just list or data as well */
+PHP_FUNCTION(aware_event_get_multi)
+{
+	char *mod_name;
+	int mod_name_len;
+	
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &mod_name, &mod_name_len) != SUCCESS) {
+		return;
+	}
+	php_aware_storage_get_multi(mod_name, 0, 0, return_value TSRMLS_CC);
 	return;
 }
 
@@ -284,6 +297,7 @@ PHP_MINFO_FUNCTION(aware)
 static zend_function_entry aware_functions[] = {
 	PHP_FE(aware_event_trigger, NULL)
 	PHP_FE(aware_event_get, NULL)
+	PHP_FE(aware_event_get_multi, NULL)
 	{NULL, NULL, NULL}
 };
 

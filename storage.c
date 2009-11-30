@@ -148,3 +148,18 @@ void php_aware_storage_get(const char *mod_name, const char *uuid, zval *return_
 
 	mod->disconnect();
 }
+
+/* get the event from storage modules */
+void php_aware_storage_get_multi(const char *mod_name, long start, long limit, zval *return_value TSRMLS_DC) 
+{
+	long found;
+	php_aware_storage_module *mod;
+	mod = php_aware_find_storage_module(mod_name);
+
+	if (!mod) {
+		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Storage module(%s) does not exist", mod_name);
+		return;
+	}
+	
+	mod->get_multi(start, limit, return_value, &found);
+}

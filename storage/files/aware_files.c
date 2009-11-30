@@ -38,7 +38,7 @@ PHP_AWARE_GET_FUNC(files)
 	php_stream *stream;
 	size_t buff_size;
 
-	if (spprintf(&filename, MAXPATHLEN, "%s/%s", AWARE_FILES_G(storage_path), uuid) <= 0) {
+	if (spprintf(&filename, MAXPATHLEN, "%s/%s.aware", AWARE_FILES_G(storage_path), uuid) <= 0) {
 		return AwareOperationFailure;
 	}
 	
@@ -70,7 +70,7 @@ PHP_AWARE_STORE_FUNC(files)
 	php_stream *stream;
 	smart_str string = {0};
 
-	if (spprintf(&filename, MAXPATHLEN, "%s/%s", AWARE_FILES_G(storage_path), uuid) <= 0) {
+	if (spprintf(&filename, MAXPATHLEN, "%s/%s.aware", AWARE_FILES_G(storage_path), uuid) <= 0) {
 		return AwareOperationFailure;
 	}
 	
@@ -81,7 +81,13 @@ PHP_AWARE_STORE_FUNC(files)
 	
 	php_aware_storage_serialize(event, &string TSRMLS_CC);
 	
-	if (!stream || php_stream_write(stream, string.c, string.len) < string.len) {
+	if (!stream) {
+		smart_str_free(&string);
+		return AwareOperationFailure;
+	}
+	
+	if (php_stream_write(stream, string.c, string.len) < string.len) {
+		php_stream_close(stream);
 		smart_str_free(&string);
 		return AwareOperationFailure;
 	}
@@ -92,10 +98,54 @@ PHP_AWARE_STORE_FUNC(files)
 	return AwareOperationSuccess;
 }
 
+static int _php_aware_files_clean_path(zval **path TSRMLS_DC)
+{
+	char *ptr, buffer[37];
+	zval *tmp;
+
+	memset(buffer, 0, 37);
+	
+	ptr = Z_STRVAL_PP(path) + (Z_STRLEN_PP(path) - 42);
+	memcpy(buffer, ptr, 36);
+	
+	MAKE_STD_ZVAL(tmp);
+	ZVAL_STRING(tmp, buffer, 1);
+	
+	zval_dtor(*path);
+	FREE_ZVAL(*path);
+	
+	*path = tmp;
+	return ZEND_HASH_APPLY_KEEP;
+}	
+
 PHP_AWARE_GET_MULTI_FUNC(files)
 {
-	aware_printf("files_get_multi called\n");
-	return AwareOperationNotSupported;
+	char path[MAXPATHLEN];
+	zval *fname;
+	zval *args[1];
+
+	/* Use php glob */
+	MAKE_STD_ZVAL(fname);
+	ZVAL_STRING(fname, "glob", 1);
+
+	MAKE_STD_ZVAL(args[0]);
+	snprintf(path, MAXPATHLEN, "%s/*-*-*-*-*.aware", AWARE_FILES_G(storage_path));
+	
+	ZVAL_STRING(args[0], path, 1);
+
+	call_user_function(EG(function_table), NULL, fname, events, 1, args TSRMLS_CC);
+	zval_dtor(fname);
+	FREE_ZVAL(fname);
+	
+	zval_dtor(args[0]);
+	FREE_ZVAL(args[0]);
+	
+	/* TODO: Start + limit */
+	if (Z_TYPE_P(events) == IS_ARRAY) {
+		zend_hash_apply(Z_ARRVAL_P(events), (apply_func_t)_php_aware_files_clean_path TSRMLS_CC);
+	}
+	
+	return AwareOperationSuccess;
 }
 
 PHP_AWARE_DISCONNECT_FUNC(files)
