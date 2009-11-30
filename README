@@ -1,0 +1,5 @@
+TODO:
+
+	- add more backends for storing events
+	- Implement get multi on supported backends
+	- Clean up the code here and there
