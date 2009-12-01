@@ -108,13 +108,9 @@ static int _php_aware_files_clean_path(zval **path TSRMLS_DC)
 	ptr = Z_STRVAL_PP(path) + (Z_STRLEN_PP(path) - 42);
 	memcpy(buffer, ptr, 36);
 	
-	MAKE_STD_ZVAL(tmp);
-	ZVAL_STRING(tmp, buffer, 1);
+	efree(Z_STRVAL_PP(path));
+	ZVAL_STRING(*path, buffer, 1);
 	
-	zval_dtor(*path);
-	FREE_ZVAL(*path);
-	
-	*path = tmp;
 	return ZEND_HASH_APPLY_KEEP;
 }	
 

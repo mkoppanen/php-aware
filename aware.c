@@ -62,7 +62,7 @@ PHP_FUNCTION(aware_event_get)
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &mod_name, &mod_name_len, &uuid, &uuid_len) != SUCCESS) {
 		return;
 	}
-	php_aware_storage_get_multi(mod_name, uuid, return_value TSRMLS_CC);
+	php_aware_storage_get(mod_name, uuid, return_value TSRMLS_CC);
 	return;
 }
 
