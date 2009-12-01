@@ -98,20 +98,25 @@ PHP_AWARE_STORE_FUNC(files)
 	return AwareOperationSuccess;
 }
 
+/* Just the uuid part of the full path */
 static int _php_aware_files_clean_path(zval **path TSRMLS_DC)
 {
 	char *ptr, buffer[37];
 	zval *tmp;
-
-	memset(buffer, 0, 37);
 	
-	ptr = Z_STRVAL_PP(path) + (Z_STRLEN_PP(path) - 42);
-	memcpy(buffer, ptr, 36);
-	
-	efree(Z_STRVAL_PP(path));
-	ZVAL_STRING(*path, buffer, 1);
-	
-	return ZEND_HASH_APPLY_KEEP;
+	if (Z_TYPE_PP(path) == IS_STRING && Z_STRLEN_PP(path) > 36) {
+		memset(buffer, 0, 37);
+		
+		ptr = Z_STRVAL_PP(path) + (Z_STRLEN_PP(path) - 42);
+		memcpy(buffer, ptr, 36);
+		
+		buffer[36] = '\0';
+		efree(Z_STRVAL_PP(path));
+		ZVAL_STRING(*path, buffer, 1);
+		
+		return ZEND_HASH_APPLY_KEEP;
+	}
+	return ZEND_HASH_APPLY_REMOVE;
 }	
 
 PHP_AWARE_GET_MULTI_FUNC(files)
