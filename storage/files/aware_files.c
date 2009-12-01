@@ -26,7 +26,6 @@ php_aware_storage_module php_aware_storage_module_files = {
 
 PHP_AWARE_CONNECT_FUNC(files)
 {
-	aware_printf("files_connect called\n");
 	return AwareOperationNotSupported;
 }
 
@@ -101,10 +100,8 @@ PHP_AWARE_STORE_FUNC(files)
 /* Just the uuid part of the full path */
 static int _php_aware_files_clean_path(zval **path TSRMLS_DC)
 {
-	char *ptr, buffer[37];
-	zval *tmp;
-	
 	if (Z_TYPE_PP(path) == IS_STRING && Z_STRLEN_PP(path) > 36) {
+		char *ptr, buffer[37];
 		memset(buffer, 0, 37);
 		
 		ptr = Z_STRVAL_PP(path) + (Z_STRLEN_PP(path) - 42);
@@ -145,13 +142,11 @@ PHP_AWARE_GET_MULTI_FUNC(files)
 	if (Z_TYPE_P(events) == IS_ARRAY) {
 		zend_hash_apply(Z_ARRVAL_P(events), (apply_func_t)_php_aware_files_clean_path TSRMLS_CC);
 	}
-	
 	return AwareOperationSuccess;
 }
 
 PHP_AWARE_DISCONNECT_FUNC(files)
 {
-	aware_printf("files_disconnect called\n");
 	return AwareOperationNotSupported;
 }
 
