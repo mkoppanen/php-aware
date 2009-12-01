@@ -1,6 +1,9 @@
 PHP_ARG_WITH(aware-snmp,    whether to enable aware snmp extension,
 [  --with-aware-snmp[=DIR]     Enable aware snmp extension. DIR is the path to net-snmp-config])
 
+PHP_ARG_ENABLE(aware-debug, whether to enable debugging,
+[  --enable-aware-debug     Enable debugging], no, no)
+
 if test "$PHP_AWARE_SNMP" != "no"; then
 
 	AC_MSG_CHECKING(net-snmp-config program)
@@ -19,6 +22,10 @@ if test "$PHP_AWARE_SNMP" != "no"; then
 	if test ! -x $NET_SNMP_CONF; then
 		AC_MSG_ERROR($NET_SNMP_CONF is not executable)
 	fi
+	
+	if test "$PHP_AWARE_DEBUG" != "no"; then
+    AC_DEFINE([_AWARE_DEBUG_], 1, [Enable debugging])
+  fi
 
 	PHP_AWARE_SNMP_INCS="$CFLAGS `$NET_SNMP_CONF --cflags`"
 	PHP_AWARE_SNMP_LIBS="$LDFLAGS `$NET_SNMP_CONF --netsnmp-libs`"

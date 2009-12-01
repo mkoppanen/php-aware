@@ -1,6 +1,9 @@
 PHP_ARG_ENABLE(aware, whether to enable error monitoring support,
 [  --enable-aware     Enable experimental error monitoring support])
 
+PHP_ARG_ENABLE(aware-debug, whether to enable debugging,
+[  --enable-aware-debug     Enable debugging], no, no)
+
 if test "$PHP_AWARE" != "no"; then
 
   AC_MSG_CHECKING([for libuuid])
@@ -18,7 +21,11 @@ if test "$PHP_AWARE" != "no"; then
 
   AC_MSG_RESULT([$PHP_AWARE_LIBUUID])
 
-  PHP_ADD_INCLUDE("$PHP_DCS_LIBMEMCACHED_DIR/include")
+	if test "$PHP_AWARE_DEBUG" != "no"; then
+    AC_DEFINE([_AWARE_DEBUG_], 1, [Enable debugging])
+  fi
+
+  PHP_ADD_INCLUDE("$PHP_AWARE_LIBUUID/include")
   PHP_ADD_LIBRARY_WITH_PATH(uuid, "$PHP_AWARE_LIBUUID/lib", AWARE_SHARED_LIBADD)
   PHP_SUBST(AWARE_SHARED_LIBADD)
 
