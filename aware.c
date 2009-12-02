@@ -110,6 +110,7 @@ PHP_FUNCTION(aware_set_error_handler)
 			if (AWARE_G(user_error_handler)) {
 				zval_dtor(AWARE_G(user_error_handler));
 				FREE_ZVAL(AWARE_G(user_error_handler));
+				AWARE_G(user_error_handler) = NULL;
 			}
 		}
 	}
@@ -282,6 +283,7 @@ static void php_aware_init_globals(zend_aware_globals *aware_globals)
 	aware_globals->log_generated	= 1;
 	
 	aware_globals->orig_set_error_handler = NULL;
+	aware_globals->user_error_handler = NULL;
 }
 
 PHP_RINIT_FUNCTION(aware)
