@@ -79,6 +79,42 @@ PHP_FUNCTION(aware_event_get_multi)
 	return;
 }
 
+PHP_FUNCTION(aware_error_handler_callback)
+{
+	if (AWARE_G(user_error_handler)) {
+		zval *args[5], retval;
+	
+		if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zz|zzz", &args[0], &args[1], &args[2], &args[3], &args[4]) != SUCCESS) {
+			return;
+		}
+		php_aware_invoke_handler(Z_LVAL_P(args[0]) TSRMLS_CC, Z_STRVAL_P(args[2]), Z_LVAL_P(args[3]), Z_STRVAL_P(args[1]));
+		call_user_function(EG(function_table), NULL, AWARE_G(user_error_handler), &retval, 5, args TSRMLS_CC);
+	}
+}
+
+
+PHP_FUNCTION(aware_set_error_handler)
+{
+	if (AWARE_G(orig_set_error_handler)) {
+		AWARE_G(orig_set_error_handler)(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+
+		aware_printf("Storing user error handler: %s\n", Z_STRVAL_P(EG(user_error_handler)));
+
+		if (EG(user_error_handler)) {
+			MAKE_STD_ZVAL(AWARE_G(user_error_handler));
+			ZVAL_STRING(AWARE_G(user_error_handler), Z_STRVAL_P(EG(user_error_handler)), 1);
+			
+			efree(Z_STRVAL_P(EG(user_error_handler)));
+			ZVAL_STRING(EG(user_error_handler), "aware_error_handler_callback", 1);
+		} else {
+			if (AWARE_G(user_error_handler)) {
+				zval_dtor(AWARE_G(user_error_handler));
+				FREE_ZVAL(AWARE_G(user_error_handler));
+			}
+		}
+	}
+}
+
 static void _add_assoc_zval_helper(zval *aware_array, char *name, uint name_len)
 {	
 	zval **ppzval;
@@ -243,14 +279,23 @@ static void php_aware_init_globals(zend_aware_globals *aware_globals)
 	aware_globals->log_server		= 1;
 	aware_globals->log_env			= 1;
 	aware_globals->log_backtrace	= 1;
-	aware_globals->log_generated	= 1;	
+	aware_globals->log_generated	= 1;
+	
+	aware_globals->orig_set_error_handler = NULL;
 }
 
 PHP_RINIT_FUNCTION(aware)
 {
 	if (AWARE_G(enabled)) {
+		zend_function *orig_set_error_handler;
+		
 		AWARE_G(orig_error_cb) = zend_error_cb;
 		zend_error_cb          =& php_aware_capture_error;
+		
+		if (zend_hash_find(EG(function_table), "set_error_handler", sizeof("set_error_handler"), (void **)&orig_set_error_handler) == SUCCESS) {
+			AWARE_G(orig_set_error_handler) = orig_set_error_handler->internal_function.handler;
+			orig_set_error_handler->internal_function.handler = zif_aware_set_error_handler;
+		}
 	}
 	
 	return SUCCESS;
@@ -260,6 +305,11 @@ PHP_RSHUTDOWN_FUNCTION(aware)
 {
 	if (AWARE_G(enabled)) {
 		zend_error_cb = AWARE_G(orig_error_cb);
+		
+		if (AWARE_G(user_error_handler)) {
+			zval_dtor(AWARE_G(user_error_handler));
+			FREE_ZVAL(AWARE_G(user_error_handler));
+		}
 	}
 	return SUCCESS;
 }
@@ -298,6 +348,7 @@ static zend_function_entry aware_functions[] = {
 	PHP_FE(aware_event_trigger, NULL)
 	PHP_FE(aware_event_get, NULL)
 	PHP_FE(aware_event_get_multi, NULL)
+	PHP_FE(aware_error_handler_callback, NULL)
 	{NULL, NULL, NULL}
 };
 

@@ -70,7 +70,6 @@ PHP_MINIT_FUNCTION(aware_skeleton)
 	} else {
 		return FAILURE;
 	}
-	
 }
 /* }}} */
 

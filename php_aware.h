@@ -44,9 +44,14 @@ ZEND_BEGIN_MODULE_GLOBALS(aware)
 	long log_level;
 	long depth;
 	
-	php_aware_orig_error_cb_t orig_error_cb;
-	
 	char *storage_modules;
+
+	php_aware_orig_error_cb_t orig_error_cb;
+
+	void (*orig_set_error_handler)(INTERNAL_FUNCTION_PARAMETERS);
+	
+	zval *user_error_handler;
+	
 ZEND_END_MODULE_GLOBALS(aware)
 
 ZEND_EXTERN_MODULE_GLOBALS(aware)
