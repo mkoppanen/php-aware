@@ -101,6 +101,10 @@ PHP_FUNCTION(aware_set_error_handler)
 		aware_printf("Storing user error handler: %s\n", Z_STRVAL_P(EG(user_error_handler)));
 
 		if (EG(user_error_handler)) {
+			if (!strcmp(Z_STRVAL_P(EG(user_error_handler)), "aware_error_handler_callback")) {
+				php_error_docref(NULL TSRMLS_CC, E_ERROR, "Do not call set_error_handler(\"aware_error_handler_callback\")");
+			}
+
 			MAKE_STD_ZVAL(AWARE_G(user_error_handler));
 			ZVAL_STRING(AWARE_G(user_error_handler), Z_STRVAL_P(EG(user_error_handler)), 1);
 			
