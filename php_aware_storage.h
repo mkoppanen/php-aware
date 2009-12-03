@@ -54,10 +54,18 @@ php_aware_storage_module *php_aware_find_storage_module(const char *);
 void php_aware_storage_store(php_aware_storage_module *, const char *, zval *, const char *, long TSRMLS_DC);
 
 /* Get from storage */
-void php_aware_storage_get(const char *, const char *, zval *return_value TSRMLS_DC);
+void php_aware_storage_get(const char *, const char *, zval * TSRMLS_DC);
+
+/* Get list of events */
+void php_aware_storage_get_multi(const char *, long , long , zval * TSRMLS_DC);
+
+void php_aware_storage_store_all(const char *, zval *, const char *, long  TSRMLS_DC);
 
 /* Serialize event */
-zend_bool php_aware_storage_serialize(zval *event, smart_str *data_var TSRMLS_DC);
+zend_bool php_aware_storage_serialize(zval *, smart_str * TSRMLS_DC);
+
+/* Unserialize event */
+zend_bool php_aware_storage_unserialize(const char *, int , zval * TSRMLS_DC);
 
 /* Function declaration macros */
 #define PHP_AWARE_CONNECT_FUNC(mod_name)	AwareOperationStatus php_aware_storage_connect_##mod_name(PHP_AWARE_CONNECT_ARGS)

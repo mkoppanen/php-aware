@@ -37,8 +37,6 @@ AwareOperationStatus php_aware_send_snmp_trap(netsnmp_session *sess, char *messa
 	char csysuptime[20];
 	char *trap = NULL, *error_file_line;
 	long sysuptime;
-
-	char *oid_val;
 	int retval;
 	
 	netsnmp_pdu *pdu = snmp_pdu_create(SNMP_MSG_TRAP2);

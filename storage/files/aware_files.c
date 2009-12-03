@@ -31,8 +31,6 @@ PHP_AWARE_CONNECT_FUNC(files)
 
 PHP_AWARE_GET_FUNC(files)
 {
-	zval *retval;
-	smart_str str = {0};
 	char *filename, *buff;
 	php_stream *stream;
 	size_t buff_size;

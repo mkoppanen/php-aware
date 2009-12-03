@@ -25,6 +25,9 @@
 # include "config.h"
 #endif
 
+#include "php_ini.h"
+#include "ext/standard/info.h"
+
 #define PHP_AWARE_EXTVER "0.1.0-dev"
 
 /* Original error callback */
@@ -74,5 +77,7 @@ extern zend_module_entry aware_module_entry;
 #else
 #define aware_printf(...)
 #endif
+
+void php_aware_original_error_cb(int type TSRMLS_DC, const char *format, ...);
 
 #endif

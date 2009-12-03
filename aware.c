@@ -18,7 +18,7 @@
 
 #include "php_aware_private.h"
 #include "ext/standard/php_smart_str.h"
-#include "php_ini.h"
+#include "Zend/zend_builtin_functions.h"
 
 #ifndef Z_ADDREF_PP
 # define Z_ADDREF_PP(ppz) ppz->refcount++;
@@ -99,8 +99,7 @@ PHP_FUNCTION(aware_set_error_handler)
 
 		/* Take the user error handler and push to our stack */
 		if (EG(user_error_handler)) {
-			/* old handler */
-			zval *old_handler, *tmp;
+			zval *tmp;
 			
 			/* Override the error handler with our callback */
 			if (!strcmp(Z_STRVAL_P(EG(user_error_handler)), "__aware_error_handler_callback")) {
@@ -166,7 +165,6 @@ void php_aware_capture_error_ex(int type, const char *error_filename, const uint
 	int len;
 	char *buffer;
 	zval *aware_array;
-	smart_str data_var = {0};
 	
 	uuid_t identifier;
 	char uuid_str[37];

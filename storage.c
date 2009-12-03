@@ -36,7 +36,7 @@ static php_aware_storage_module *php_aware_storage_modules[MAX_MODULES + 1] = {
 
 static zend_bool php_aware_storage_module_is_configured(const char *mod_name TSRMLS_DC) 
 {
-	char *pch, *modules, *last;
+	char *pch, *last;
 
 	pch = php_strtok_r(AWARE_G(storage_modules), ",", &last);
 	
