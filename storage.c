@@ -39,6 +39,8 @@ zend_bool php_aware_register_storage_module(php_aware_storage_module *mod)
 	int i;
 	
 	aware_printf("Registering storage module: %s\n", mod->name);
+	
+	/* TODO: check whether the module has been configured */
 
 	for (i = 0; i < MAX_MODULES; i++) {
 		if (!php_aware_storage_modules[i]) {
