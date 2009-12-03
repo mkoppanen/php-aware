@@ -21,6 +21,7 @@
 
 #include "ext/standard/php_var.h"
 #include "ext/standard/php_smart_str.h"
+#include "ext/standard/php_string.h"
 
 ZEND_DECLARE_MODULE_GLOBALS(aware)
 
@@ -33,14 +34,33 @@ ZEND_DECLARE_MODULE_GLOBALS(aware)
 static php_aware_storage_module *php_aware_storage_modules[MAX_MODULES + 1] = {
 };
 
-zend_bool php_aware_register_storage_module(php_aware_storage_module *mod)
+static zend_bool php_aware_storage_module_is_configured(const char *mod_name TSRMLS_DC) 
 {
-	int ret = FAILURE;
-	int i;
+	char *pch, *modules, *last;
+
+	pch = php_strtok_r(AWARE_G(storage_modules), ",", &last);
 	
+	while (pch != NULL) {
+		char *mod = php_trim(pch, strlen(pch), NULL, 0, NULL, 3 TSRMLS_CC);
+		
+		if (mod && !strcmp(mod, mod_name)) {
+			return 1;
+		}
+		pch = php_strtok_r(NULL, ",", &last);
+	}
+	return 0;
+}
+
+zend_bool php_aware_register_storage_module(php_aware_storage_module *mod TSRMLS_DC)
+{
+	int i, ret = FAILURE;
+
 	aware_printf("Registering storage module: %s\n", mod->name);
 	
-	/* TODO: check whether the module has been configured */
+	if (!php_aware_storage_module_is_configured(mod->name TSRMLS_CC)) {
+		aware_printf("Storage module %s is not configured\n", mod->name);
+		return SUCCESS;
+	}
 
 	for (i = 0; i < MAX_MODULES; i++) {
 		if (!php_aware_storage_modules[i]) {

@@ -4,7 +4,9 @@ Test aware loading
 <?php if (!extension_loaded("aware")) print "skip"; ?>
 --FILE--
 <?php
-echo "Aware loaded";
+echo "Aware loaded\n";
+var_dump(ini_get("aware.enabled"));
 ?>
 --EXPECT--
 Aware loaded
+string(1) "1"

@@ -64,7 +64,7 @@ PHP_MINIT_FUNCTION(aware_skeleton)
 	ZEND_INIT_MODULE_GLOBALS(aware_skeleton, php_aware_skeleton_init_globals, NULL);
 	REGISTER_INI_ENTRIES();
 	
-	if (php_aware_register_storage_module(php_aware_storage_module_skeleton_ptr) == SUCCESS) {
+	if (php_aware_register_storage_module(php_aware_storage_module_skeleton_ptr TSRMLS_CC) == SUCCESS) {
 		aware_printf("Registered skeleton module successfully\n");
 		return SUCCESS;
 	} else {

@@ -48,7 +48,7 @@ typedef struct _php_aware_storage_module {
 zend_bool php_aware_register_storage_module(php_aware_storage_module * TSRMLS_DC);
 
 /* Find a storage module */
-php_aware_storage_module *php_aware_find_storage_module(const char * TSRMLS_DC);
+php_aware_storage_module *php_aware_find_storage_module(const char *);
 
 /* Send the event, takes care of reading configured modules and propagates the event */
 void php_aware_storage_store(php_aware_storage_module *, const char *, zval *, const char *, long TSRMLS_DC);

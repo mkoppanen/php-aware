@@ -5,6 +5,8 @@ Test set_error_handler overloading error levels
 --FILE--
 <?php
 
+var_dump(ini_get("aware.enabled"));
+
 function my_error_handler() {
     echo "Called\n";
 }
@@ -16,6 +18,8 @@ sdfsfsdf;
 foreach (null as $k) {}
 
 ?>
---EXPECT--
-Notice: Use of undefined constant sdfsfsdf - assumed 'sdfsfsdf' in /tmp/aware/tests/003_error_handler_levels.php on line 9
+--EXPECTF--
+string(1) "1"
+
+Notice: Use of undefined constant sdfsfsdf - assumed 'sdfsfsdf' in /tmp/aware/tests/003_error_handler_levels.php on line %d
 Called
