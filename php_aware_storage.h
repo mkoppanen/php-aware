@@ -23,7 +23,7 @@
 #include "ext/standard/php_smart_str.h"
 
 #define PHP_AWARE_CONNECT_ARGS		TSRMLS_D
-#define PHP_AWARE_GET_ARGS		const char *uuid, zval *event TSRMLS_DC
+#define PHP_AWARE_GET_ARGS			const char *uuid, zval *event TSRMLS_DC
 #define PHP_AWARE_STORE_ARGS		const char *uuid, zval *event, const char *error_filename, long error_lineno TSRMLS_DC
 #define PHP_AWARE_GET_MULTI_ARGS	long start, long limit, zval *events, long *num_found TSRMLS_DC
 #define PHP_AWARE_DISCONNECT_ARGS	TSRMLS_D

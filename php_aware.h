@@ -49,6 +49,10 @@ ZEND_BEGIN_MODULE_GLOBALS(aware)
 	php_aware_orig_error_cb_t orig_error_cb;
 
 	void (*orig_set_error_handler)(INTERNAL_FUNCTION_PARAMETERS);
+	void (*orig_restore_error_handler)(INTERNAL_FUNCTION_PARAMETERS);
+	
+	zend_ptr_stack user_error_handlers;
+	zend_stack user_error_handler_levels;
 	
 	zval *user_error_handler;
 	

@@ -79,7 +79,7 @@ PHP_FUNCTION(aware_event_get_multi)
 	return;
 }
 
-PHP_FUNCTION(aware_error_handler_callback)
+PHP_FUNCTION(__aware_error_handler_callback)
 {
 	if (AWARE_G(user_error_handler)) {
 		zval *args[5], retval;
@@ -92,30 +92,60 @@ PHP_FUNCTION(aware_error_handler_callback)
 	}
 }
 
-
 PHP_FUNCTION(aware_set_error_handler)
 {
 	if (AWARE_G(orig_set_error_handler)) {
 		AWARE_G(orig_set_error_handler)(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 
-		aware_printf("Storing user error handler: %s\n", Z_STRVAL_P(EG(user_error_handler)));
-
+		/* Take the user error handler and push to our stack */
 		if (EG(user_error_handler)) {
-			if (!strcmp(Z_STRVAL_P(EG(user_error_handler)), "aware_error_handler_callback")) {
-				php_error_docref(NULL TSRMLS_CC, E_ERROR, "Do not call set_error_handler(\"aware_error_handler_callback\")");
+			/* old handler */
+			zval *old_handler, *tmp;
+			
+			/* Override the error handler with our callback */
+			if (!strcmp(Z_STRVAL_P(EG(user_error_handler)), "__aware_error_handler_callback")) {
+				php_error_docref(NULL TSRMLS_CC, E_ERROR, "Do not call set_error_handler(\"__aware_error_handler_callback\")");
+			}
+			
+			if (zend_ptr_stack_num_elements(&AWARE_G(user_error_handlers)) > 0) {
+				zval *old_handler = (zval *)zend_ptr_stack_pop(&AWARE_G(user_error_handlers));
+				zend_ptr_stack_push(&AWARE_G(user_error_handlers), old_handler);
+			
+				zval_dtor(return_value);
+				ZVAL_STRING(return_value, Z_STRVAL_P(old_handler), 1);
+			}
+			
+			MAKE_STD_ZVAL(tmp);
+			ZVAL_STRING(tmp, Z_STRVAL_P(EG(user_error_handler)), 1);
+
+			/* free previous error handler */
+			if (AWARE_G(user_error_handler) && Z_TYPE_P(AWARE_G(user_error_handler)) == IS_STRING) {
+				efree(Z_STRVAL_P(AWARE_G(user_error_handler)));
+			} else {
+				MAKE_STD_ZVAL(AWARE_G(user_error_handler));
 			}
 
-			MAKE_STD_ZVAL(AWARE_G(user_error_handler));
 			ZVAL_STRING(AWARE_G(user_error_handler), Z_STRVAL_P(EG(user_error_handler)), 1);
-			
-			efree(Z_STRVAL_P(EG(user_error_handler)));
-			ZVAL_STRING(EG(user_error_handler), "aware_error_handler_callback", 1);
-		} else {
-			if (AWARE_G(user_error_handler)) {
-				zval_dtor(AWARE_G(user_error_handler));
-				FREE_ZVAL(AWARE_G(user_error_handler));
-				AWARE_G(user_error_handler) = NULL;
-			}
+
+			/* Create a new handler */
+			zend_ptr_stack_push(&AWARE_G(user_error_handlers), tmp);
+
+			zval_dtor(EG(user_error_handler));
+			ZVAL_STRING(EG(user_error_handler), "__aware_error_handler_callback", 1);
+		}
+	}
+}
+
+PHP_FUNCTION(aware_restore_error_handler)
+{
+	if (AWARE_G(orig_restore_error_handler)) {
+		AWARE_G(orig_restore_error_handler)(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+
+		/* Delete the top element from our stack */
+		if (zend_ptr_stack_num_elements(&AWARE_G(user_error_handlers)) > 0) {
+			zval *tmp = (zval *)zend_ptr_stack_pop(&AWARE_G(user_error_handlers));
+			zval_dtor(tmp);
+			FREE_ZVAL(tmp);
 		}
 	}
 }
@@ -293,7 +323,7 @@ static void php_aware_init_globals(zend_aware_globals *aware_globals)
 PHP_RINIT_FUNCTION(aware)
 {
 	if (AWARE_G(enabled)) {
-		zend_function *orig_set_error_handler;
+		zend_function *orig_set_error_handler, *orig_restore_error_handler;
 		
 		AWARE_G(orig_error_cb) = zend_error_cb;
 		zend_error_cb          =& php_aware_capture_error;
@@ -302,6 +332,12 @@ PHP_RINIT_FUNCTION(aware)
 			AWARE_G(orig_set_error_handler) = orig_set_error_handler->internal_function.handler;
 			orig_set_error_handler->internal_function.handler = zif_aware_set_error_handler;
 		}
+		if (zend_hash_find(EG(function_table), "restore_error_handler", sizeof("restore_error_handler"), (void **)&orig_restore_error_handler) == SUCCESS) {
+			AWARE_G(orig_restore_error_handler) = orig_restore_error_handler->internal_function.handler;
+			orig_restore_error_handler->internal_function.handler = zif_aware_restore_error_handler;
+		}
+		
+		zend_ptr_stack_init(&AWARE_G(user_error_handlers));
 	}
 	
 	return SUCCESS;
@@ -311,6 +347,8 @@ PHP_RSHUTDOWN_FUNCTION(aware)
 {
 	if (AWARE_G(enabled)) {
 		zend_error_cb = AWARE_G(orig_error_cb);
+		zend_ptr_stack_clean(&AWARE_G(user_error_handlers), ZVAL_DESTRUCTOR, 1);
+		zend_ptr_stack_destroy(&AWARE_G(user_error_handlers));
 		
 		if (AWARE_G(user_error_handler)) {
 			zval_dtor(AWARE_G(user_error_handler));
@@ -354,7 +392,7 @@ static zend_function_entry aware_functions[] = {
 	PHP_FE(aware_event_trigger, NULL)
 	PHP_FE(aware_event_get, NULL)
 	PHP_FE(aware_event_get_multi, NULL)
-	PHP_FE(aware_error_handler_callback, NULL)
+	PHP_FE(__aware_error_handler_callback, NULL)
 	{NULL, NULL, NULL}
 };
 
