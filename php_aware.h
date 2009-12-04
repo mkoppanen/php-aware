@@ -58,6 +58,10 @@ ZEND_BEGIN_MODULE_GLOBALS(aware)
 	zend_stack user_error_handler_levels;
 	
 	zval *user_error_handler;
+	
+	long slow_request_threshold;
+	struct timeval request_start;
+	
 ZEND_END_MODULE_GLOBALS(aware)
 
 ZEND_EXTERN_MODULE_GLOBALS(aware)

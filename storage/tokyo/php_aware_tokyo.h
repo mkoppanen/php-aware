@@ -16,10 +16,10 @@
    +----------------------------------------------------------------------+
 */
 
-#ifndef _PHP_AWARE_SNMP_H_
-# define _PHP_AWARE_SNMP_H_
+#ifndef _PHP_AWARE_TOKYO_H_
+# define _PHP_AWARE_TOKYO_H_
 
-#define PHP_AWARE_SNMP_EXTVER "0.0.1-dev"
+#define PHP_AWARE_TOKYO_EXTVER "0.0.1-dev"
 
 #include "php.h"
 #include "php_ini.h"
@@ -31,42 +31,54 @@
 #include <ext/aware/php_aware.h>
 #include <ext/aware/php_aware_storage.h>
 
-#include <net-snmp/net-snmp-config.h>
-#include <net-snmp/net-snmp-includes.h>
+#include <tcrdb.h>
+#include <stdlib.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <stdint.h>
 
-ZEND_BEGIN_MODULE_GLOBALS(aware_snmp)
-	netsnmp_session *snmp_sess;
-	char *trap_host;
-	char *trap_community;
+#include "php_aware_tokyo_cabinet.h"
 
-	char *app_key;
+typedef enum _AwareTokyoBackend {
+	AwareTokyoBackendNotSet,
+	AwareTokyoBackendCabinet,
+	AwareTokyoBackendTyrant
+} AwareTokyoBackend;
 
-	char *name_oid;
-	char *error_msg_oid;
-	char *trap_oid;
-	char *user_msg_oid;
+ZEND_BEGIN_MODULE_GLOBALS(aware_tokyo)
+	AwareTokyoBackend backend;
+	
+	char *backend_str;
+	
+	char *tyrant_host;
+	long tyrant_port;
+	
+	char *cabinet_path;
+	
+	/* cabinet handle */
+	TCTDB *cabinet;
+	
+	/* tyrant connection */
+	TCRDB *rdb;
 
-	long max_traps;
-	long current_hour;
-	long sent_traps;
-ZEND_END_MODULE_GLOBALS(aware_snmp)
+ZEND_END_MODULE_GLOBALS(aware_tokyo)
 
-ZEND_EXTERN_MODULE_GLOBALS(aware_snmp)
+ZEND_EXTERN_MODULE_GLOBALS(aware_tokyo)
 
 #ifdef ZTS
-# define AWARE_SNMP_G(v) TSRMG(aware_snmp_globals_id, zend_aware_snmp_globals *, v)
+# define AWARE_TOKYO_G(v) TSRMG(aware_tokyo_globals_id, zend_aware_tokyo_globals *, v)
 #else
-# define AWARE_SNMP_G(v) (aware_snmp_globals.v)
+# define AWARE_TOKYO_G(v) (aware_tokyo_globals.v)
 #endif
 
 /* Hook into aware module */
-extern php_aware_storage_module php_aware_storage_module_snmp;
-#define php_aware_storage_module_snmp_ptr &php_aware_storage_module_snmp
+extern php_aware_storage_module php_aware_storage_module_tokyo;
+#define php_aware_storage_module_tokyo_ptr &php_aware_storage_module_tokyo
 
 /* Normal PHP entry */
-extern zend_module_entry aware_snmp_module_entry;
-#define phpext_aware_snmp_ptr &aware_snmp_module_entry
+extern zend_module_entry aware_tokyo_module_entry;
+#define phpext_aware_tokyo_ptr &aware_tokyo_module_entry
 
-PHP_AWARE_STORAGE_FUNCS(snmp);
+PHP_AWARE_STORAGE_FUNCS(tokyo);
 
 #endif

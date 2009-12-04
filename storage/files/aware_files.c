@@ -114,7 +114,7 @@ static int _php_aware_files_clean_path(zval **path TSRMLS_DC)
 	return ZEND_HASH_APPLY_REMOVE;
 }	
 
-PHP_AWARE_GET_MULTI_FUNC(files)
+PHP_AWARE_GET_LIST_FUNC(files)
 {
 	char path[MAXPATHLEN];
 	zval *fname;
@@ -162,14 +162,13 @@ PHP_MINIT_FUNCTION(aware_files)
 {
 	ZEND_INIT_MODULE_GLOBALS(aware_files, php_aware_files_init_globals, NULL);
 	REGISTER_INI_ENTRIES();
-	
-	if (php_aware_register_storage_module(php_aware_storage_module_files_ptr TSRMLS_CC) == SUCCESS) {
+
+	if (php_aware_register_storage_module(php_aware_storage_module_files_ptr TSRMLS_CC) == AwareModuleFailed) {
+		return FAILURE;
+	} else {
 		aware_printf("Registered files module successfully\n");
 		return SUCCESS;
-	} else {
-		return FAILURE;
 	}
-	
 }
 /* }}} */
 

@@ -5,11 +5,13 @@ if [ "x$1" = "xdebug" ]; then
 fi
 
 export CFLAGS="-Wall"
+export PHP_AUTOCONF="autoconf2.13"
+export PHP_AUTOHEADER="autoheader2.13"
 
-phpize && ./configure ${CONFIGURE_OPTS} && make clean && make && make install && 
-cd storage/files &&
-phpize && ./configure ${CONFIGURE_OPTS} && make clean && make && make install && 
-cd ../snmp &&
-phpize && ./configure ${CONFIGURE_OPTS} && make clean && make && make install
-cd ../skeleton &&
+phpize && ./configure ${CONFIGURE_OPTS} && make clean && make && make install && \
+cd storage/files && \
+phpize && ./configure ${CONFIGURE_OPTS} && make clean && make && make install && \
+cd ../snmp && \
+phpize && ./configure ${CONFIGURE_OPTS} && make clean && make && make install && \
+cd ../skeleton && \
 phpize && ./configure ${CONFIGURE_OPTS} && make clean && make && make install

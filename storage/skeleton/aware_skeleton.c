@@ -39,7 +39,7 @@ PHP_AWARE_STORE_FUNC(skeleton)
 	return AwareOperationNotSupported;
 }
 
-PHP_AWARE_GET_MULTI_FUNC(skeleton)
+PHP_AWARE_GET_LIST_FUNC(skeleton)
 {
 	return AwareOperationNotSupported;
 }
@@ -64,11 +64,11 @@ PHP_MINIT_FUNCTION(aware_skeleton)
 	ZEND_INIT_MODULE_GLOBALS(aware_skeleton, php_aware_skeleton_init_globals, NULL);
 	REGISTER_INI_ENTRIES();
 	
-	if (php_aware_register_storage_module(php_aware_storage_module_skeleton_ptr TSRMLS_CC) == SUCCESS) {
+	if (php_aware_register_storage_module(php_aware_storage_module_skeleton_ptr TSRMLS_CC) == AwareModuleFailed) {
+		return FAILURE;
+	} else {
 		aware_printf("Registered skeleton module successfully\n");
 		return SUCCESS;
-	} else {
-		return FAILURE;
 	}
 }
 /* }}} */

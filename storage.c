@@ -36,36 +36,41 @@ static php_aware_storage_module *php_aware_storage_modules[MAX_MODULES + 1] = {
 
 static zend_bool php_aware_storage_module_is_configured(const char *mod_name TSRMLS_DC) 
 {
-	char *pch, *last;
+	zend_bool retval = 0;
+	char *pch, *last, *ptr;
 
-	pch = php_strtok_r(AWARE_G(storage_modules), ",", &last);
-	
+	ptr = estrdup(AWARE_G(storage_modules));
+	pch = php_strtok_r(ptr, ",", &last);
+
 	while (pch != NULL) {
 		char *mod = php_trim(pch, strlen(pch), NULL, 0, NULL, 3 TSRMLS_CC);
 		
 		if (mod && !strcmp(mod, mod_name)) {
-			return 1;
+			retval = 1;
+			break;
 		}
 		pch = php_strtok_r(NULL, ",", &last);
 	}
-	return 0;
+	
+	efree(ptr);
+	return retval;
 }
 
-zend_bool php_aware_register_storage_module(php_aware_storage_module *mod TSRMLS_DC)
+AwareModuleRegisterStatus php_aware_register_storage_module(php_aware_storage_module *mod TSRMLS_DC)
 {
-	int i, ret = FAILURE;
-
+	int i, ret = AwareModuleFailed;
+	
 	aware_printf("Registering storage module: %s\n", mod->name);
 	
 	if (!php_aware_storage_module_is_configured(mod->name TSRMLS_CC)) {
 		aware_printf("Storage module %s is not configured\n", mod->name);
-		return SUCCESS;
+		return AwareModuleNotConfigured;
 	}
 
 	for (i = 0; i < MAX_MODULES; i++) {
 		if (!php_aware_storage_modules[i]) {
 			php_aware_storage_modules[i] = mod;
-			ret = SUCCESS;
+			ret = AwareModuleRegistered;
 			break;
 		}
 	}
@@ -106,7 +111,7 @@ zend_bool php_aware_storage_unserialize(const char *string, int string_len, zval
 	php_unserialize_data_t var_hash;
 	const unsigned char *p, *s;
 
-	p = s = string;
+	p = s = (const unsigned char *)string;
 	
 	PHP_VAR_UNSERIALIZE_INIT(var_hash);
 	unserialized = php_var_unserialize(&retval, (const unsigned char **)&p, (const unsigned char *) s + string_len, &var_hash TSRMLS_CC);
@@ -159,22 +164,23 @@ void php_aware_storage_get(const char *mod_name, const char *uuid, zval *return_
 	}
 	
 	/* Connect failed, report error and bail out */
-	if (mod->connect() == AwareOperationFailure) {
+	if (mod->connect(TSRMLS_C) == AwareOperationFailure) {
 		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to connect the storage module (%s)", mod_name);
 		return;
 	}
 
-	if (mod->get(uuid, return_value) == AwareOperationFailure) {
+	if (mod->get(uuid, return_value TSRMLS_CC) == AwareOperationFailure) {
 		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to get the event (%s)", mod_name);
 	}
 
-	mod->disconnect();
+	if (mod->disconnect(TSRMLS_C) == AwareOperationFailure) {
+		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to disconnect storage module (%s)", mod->name);
+	}
 }
 
 /* get the event from storage modules */
-void php_aware_storage_get_multi(const char *mod_name, long start, long limit, zval *return_value TSRMLS_DC) 
+void php_aware_storage_get_list(const char *mod_name, long start, long limit, zval *return_value TSRMLS_DC) 
 {
-	long found;
 	php_aware_storage_module *mod;
 	mod = php_aware_find_storage_module(mod_name);
 
@@ -183,5 +189,17 @@ void php_aware_storage_get_multi(const char *mod_name, long start, long limit, z
 		return;
 	}
 	
-	mod->get_multi(start, limit, return_value, &found);
+	/* Connect failed, report error and bail out */
+	if (mod->connect(TSRMLS_C) == AwareOperationFailure) {
+		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to connect the storage module (%s)", mod_name);
+		return;
+	}
+	
+	if (mod->get_list(start, limit, return_value TSRMLS_CC) == AwareOperationFailure) {
+		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to get event list (%s)", mod_name);
+	}
+
+	if (mod->disconnect(TSRMLS_C) == AwareOperationFailure) {
+		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to disconnect storage module (%s)", mod->name);
+	}
 }

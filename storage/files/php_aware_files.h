@@ -24,6 +24,10 @@
 #include "php.h"
 #include "php_ini.h"
 
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
+
 #include <ext/aware/php_aware.h>
 #include <ext/aware/php_aware_storage.h>
 

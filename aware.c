@@ -19,6 +19,7 @@
 #include "php_aware_private.h"
 #include "ext/standard/php_smart_str.h"
 #include "Zend/zend_builtin_functions.h"
+#include "main/php_config.h"
 
 #ifndef Z_ADDREF_PP
 # define Z_ADDREF_PP(ppz) ppz->refcount++;
@@ -29,6 +30,9 @@
 
 ZEND_DECLARE_MODULE_GLOBALS(aware)
 
+/* {{{ aware_event_trigger(int error_level, string message)
+	Trigger and event
+*/
 PHP_FUNCTION(aware_event_trigger)
 {
 	char *message;
@@ -53,7 +57,11 @@ PHP_FUNCTION(aware_event_trigger)
 	}
 	RETURN_FALSE;
 }
+/* }}} */
 
+/* {{{ aware_event_get(string module_name, string uuid)
+	Get event as an array
+*/
 PHP_FUNCTION(aware_event_get)
 {
 	char *uuid, *mod_name;
@@ -65,20 +73,28 @@ PHP_FUNCTION(aware_event_get)
 	php_aware_storage_get(mod_name, uuid, return_value TSRMLS_CC);
 	return;
 }
+/* }}} */
 
-/* TODO: should this return just list or data as well */
-PHP_FUNCTION(aware_event_get_multi)
+/* {{{ aware_event_get_list(string module_name[ ,int start, int limit])
+	Get list of events
+*/
+PHP_FUNCTION(aware_event_get_list)
 {
 	char *mod_name;
 	int mod_name_len;
+	long start = 0, limit = 10;
 	
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &mod_name, &mod_name_len) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|ll", &mod_name, &mod_name_len, &start, &limit) != SUCCESS) {
 		return;
 	}
-	php_aware_storage_get_multi(mod_name, 0, 0, return_value TSRMLS_CC);
+	php_aware_storage_get_list(mod_name, start, limit, return_value TSRMLS_CC);
 	return;
 }
+/* }}} */
 
+/* {{{ __aware_error_handler_callback
+	Callback
+*/
 PHP_FUNCTION(__aware_error_handler_callback)
 {
 	if (AWARE_G(user_error_handler)) {
@@ -89,11 +105,11 @@ PHP_FUNCTION(__aware_error_handler_callback)
 		}
 		
 		aware_printf("Invoking error handler: %s\n", Z_STRVAL_P(AWARE_G(user_error_handler)));
-		
 		php_aware_invoke_handler(Z_LVAL_P(args[0]) TSRMLS_CC, Z_STRVAL_P(args[2]), Z_LVAL_P(args[3]), Z_STRVAL_P(args[1]));
 		call_user_function(EG(function_table), NULL, AWARE_G(user_error_handler), &retval, 5, args TSRMLS_CC);
 	}
 }
+/* }}} */
 
 PHP_FUNCTION(aware_set_error_handler)
 {
@@ -322,6 +338,8 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_ENTRY("aware.log_backtrace",	"1",		PHP_INI_PERDIR, OnUpdateBool,		log_backtrace,		zend_aware_globals, aware_globals)	
 	STD_PHP_INI_ENTRY("aware.log_generated",	"1",		PHP_INI_PERDIR, OnUpdateBool,		log_generated,		zend_aware_globals, aware_globals)
 	STD_PHP_INI_ENTRY("aware.storage_modules",	"",			PHP_INI_PERDIR, OnUpdateString,		storage_modules,	zend_aware_globals, aware_globals)
+
+	STD_PHP_INI_ENTRY("aware.slow_request_threshold",	"0",	PHP_INI_PERDIR, OnUpdateLong,	slow_request_threshold,	zend_aware_globals, aware_globals)
 PHP_INI_END()
 
 static void php_aware_init_globals(zend_aware_globals *aware_globals)
@@ -339,10 +357,21 @@ static void php_aware_init_globals(zend_aware_globals *aware_globals)
 	aware_globals->log_env			= 1;
 	aware_globals->log_backtrace	= 1;
 	aware_globals->log_generated	= 1;
+	aware_globals->slow_request_threshold = 0;
 	
 	aware_globals->orig_set_error_handler = NULL;
 	aware_globals->user_error_handler = NULL;
 }
+
+#ifdef HAVE_GETTIMEOFDAY
+static zend_bool aware_timestamp_get(struct timeval *tp)
+{
+	if (gettimeofday(tp, NULL)) {
+		return 0;
+    }
+	return 1;
+}
+#endif
 
 PHP_RINIT_FUNCTION(aware)
 {
@@ -362,6 +391,14 @@ PHP_RINIT_FUNCTION(aware)
 		}
 		
 		zend_ptr_stack_init(&AWARE_G(user_error_handlers));
+#ifdef HAVE_GETTIMEOFDAY	
+		if (AWARE_G(slow_request_threshold)) {
+			if (!aware_timestamp_get(&AWARE_G(request_start))) {
+				/* failed to get timestamp */
+				AWARE_G(slow_request_threshold) = 0;
+			}
+		}
+#endif
 	}
 	
 	return SUCCESS;
@@ -370,6 +407,25 @@ PHP_RINIT_FUNCTION(aware)
 PHP_RSHUTDOWN_FUNCTION(aware)
 {
 	if (AWARE_G(enabled)) {
+		zend_function *orig_set_error_handler, *orig_restore_error_handler;
+
+#ifdef HAVE_GETTIMEOFDAY	
+		if (AWARE_G(slow_request_threshold)) {
+			struct timeval tp;
+			if (aware_timestamp_get(&tp)) {
+				/* in milliseconds */
+				long elapsed;
+				
+				elapsed  = (long)((tp.tv_sec - AWARE_G(request_start).tv_sec) * 1000);
+				elapsed += (long)((tp.tv_usec - AWARE_G(request_start).tv_usec) / 1000);
+				
+				if (elapsed > AWARE_G(slow_request_threshold)) {
+					aware_printf("Slow request: %ld\n", elapsed);
+					php_aware_invoke_handler(E_WARNING, "aware internal reporting", 0, "Slow request detected. Elapsed time: %ld", elapsed);
+				}
+			}
+		}
+#endif		
 		zend_error_cb = AWARE_G(orig_error_cb);
 		zend_ptr_stack_clean(&AWARE_G(user_error_handlers), ZVAL_DESTRUCTOR, 1);
 		zend_ptr_stack_destroy(&AWARE_G(user_error_handlers));
@@ -377,6 +433,13 @@ PHP_RSHUTDOWN_FUNCTION(aware)
 		if (AWARE_G(user_error_handler)) {
 			zval_dtor(AWARE_G(user_error_handler));
 			FREE_ZVAL(AWARE_G(user_error_handler));
+		}
+		
+		if (zend_hash_find(EG(function_table), "set_error_handler", sizeof("set_error_handler"), (void **)&orig_set_error_handler) == SUCCESS) {
+			orig_set_error_handler->internal_function.handler = AWARE_G(orig_set_error_handler);
+		}
+		if (zend_hash_find(EG(function_table), "restore_error_handler", sizeof("restore_error_handler"), (void **)&orig_restore_error_handler) == SUCCESS) {
+			orig_restore_error_handler->internal_function.handler = AWARE_G(orig_restore_error_handler);
 		}
 	}
 	return SUCCESS;
@@ -415,7 +478,7 @@ PHP_MINFO_FUNCTION(aware)
 static zend_function_entry aware_functions[] = {
 	PHP_FE(aware_event_trigger, NULL)
 	PHP_FE(aware_event_get, NULL)
-	PHP_FE(aware_event_get_multi, NULL)
+	PHP_FE(aware_event_get_list, NULL)
 	PHP_FE(__aware_error_handler_callback, NULL)
 	{NULL, NULL, NULL}
 };

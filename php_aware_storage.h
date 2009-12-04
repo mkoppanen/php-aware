@@ -25,7 +25,7 @@
 #define PHP_AWARE_CONNECT_ARGS		TSRMLS_D
 #define PHP_AWARE_GET_ARGS			const char *uuid, zval *event TSRMLS_DC
 #define PHP_AWARE_STORE_ARGS		const char *uuid, zval *event, const char *error_filename, long error_lineno TSRMLS_DC
-#define PHP_AWARE_GET_MULTI_ARGS	long start, long limit, zval *events, long *num_found TSRMLS_DC
+#define PHP_AWARE_GET_LIST_ARGS		long start, long limit, zval *events TSRMLS_DC
 #define PHP_AWARE_DISCONNECT_ARGS	TSRMLS_D
 
 typedef enum _AwareOperationStatus {
@@ -34,18 +34,24 @@ typedef enum _AwareOperationStatus {
 	AwareOperationNotSupported
 } AwareOperationStatus;
 
+typedef enum _AwareModuleRegisterStatus {
+	AwareModuleNotConfigured,
+	AwareModuleRegistered,
+	AwareModuleFailed
+} AwareModuleRegisterStatus;
+
 /* Storage structure for storing the events */
 typedef struct _php_aware_storage_module {
 	char *name;
 	AwareOperationStatus  (*connect)(PHP_AWARE_CONNECT_ARGS);
 	AwareOperationStatus  (*get)(PHP_AWARE_GET_ARGS);
 	AwareOperationStatus  (*store)(PHP_AWARE_STORE_ARGS);
-	AwareOperationStatus  (*get_multi)(PHP_AWARE_GET_MULTI_ARGS);
+	AwareOperationStatus  (*get_list)(PHP_AWARE_GET_LIST_ARGS);
 	AwareOperationStatus  (*disconnect)(PHP_AWARE_DISCONNECT_ARGS);
 } php_aware_storage_module;
 
 /* Register a storage module */
-zend_bool php_aware_register_storage_module(php_aware_storage_module * TSRMLS_DC);
+AwareModuleRegisterStatus php_aware_register_storage_module(php_aware_storage_module * TSRMLS_DC);
 
 /* Find a storage module */
 php_aware_storage_module *php_aware_find_storage_module(const char *);
@@ -57,7 +63,7 @@ void php_aware_storage_store(php_aware_storage_module *, const char *, zval *, c
 void php_aware_storage_get(const char *, const char *, zval * TSRMLS_DC);
 
 /* Get list of events */
-void php_aware_storage_get_multi(const char *, long , long , zval * TSRMLS_DC);
+void php_aware_storage_get_list(const char *, long , long , zval * TSRMLS_DC);
 
 void php_aware_storage_store_all(const char *, zval *, const char *, long  TSRMLS_DC);
 
@@ -74,7 +80,7 @@ zend_bool php_aware_storage_unserialize(const char *, int , zval * TSRMLS_DC);
 
 #define PHP_AWARE_STORE_FUNC(mod_name)		AwareOperationStatus php_aware_storage_store_##mod_name(PHP_AWARE_STORE_ARGS)
 
-#define PHP_AWARE_GET_MULTI_FUNC(mod_name)	AwareOperationStatus php_aware_storage_get_multi_##mod_name(PHP_AWARE_GET_MULTI_ARGS)
+#define PHP_AWARE_GET_LIST_FUNC(mod_name)	AwareOperationStatus php_aware_storage_get_list_##mod_name(PHP_AWARE_GET_LIST_ARGS)
 
 #define PHP_AWARE_DISCONNECT_FUNC(mod_name)	AwareOperationStatus php_aware_storage_disconnect_##mod_name(PHP_AWARE_DISCONNECT_ARGS)
 
@@ -82,11 +88,11 @@ zend_bool php_aware_storage_unserialize(const char *, int , zval * TSRMLS_DC);
 	PHP_AWARE_CONNECT_FUNC(mod_name); \
 	PHP_AWARE_GET_FUNC(mod_name); \
 	PHP_AWARE_STORE_FUNC(mod_name); \
-	PHP_AWARE_GET_MULTI_FUNC(mod_name); \
+	PHP_AWARE_GET_LIST_FUNC(mod_name); \
 	PHP_AWARE_DISCONNECT_FUNC(mod_name); 
 		
 #define PHP_AWARE_STORAGE_MOD(mod_name) \
 	#mod_name, php_aware_storage_connect_##mod_name, php_aware_storage_get_##mod_name, php_aware_storage_store_##mod_name, \
-	php_aware_storage_get_multi_##mod_name, php_aware_storage_disconnect_##mod_name
+	php_aware_storage_get_list_##mod_name, php_aware_storage_disconnect_##mod_name
 
 #endif

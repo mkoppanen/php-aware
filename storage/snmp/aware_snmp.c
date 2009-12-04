@@ -165,7 +165,7 @@ PHP_AWARE_STORE_FUNC(snmp)
 	}
 }
 
-PHP_AWARE_GET_MULTI_FUNC(snmp)
+PHP_AWARE_GET_LIST_FUNC(snmp)
 {
 	return AwareOperationNotSupported;
 }
@@ -200,44 +200,54 @@ static void php_aware_snmp_init_globals(zend_aware_snmp_globals *aware_snmp_glob
 	aware_snmp_globals->error_msg_oid = NULL;
 }
 
+static zend_bool php_aware_snmp_check_config(TSRMLS_D)
+{
+	if (!AWARE_SNMP_G(trap_host)) {
+		php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_snmp, missing aware_snmp.trap_host");
+		return FAILURE;
+	}
+
+	if (!AWARE_SNMP_G(trap_community)) {
+		php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_snmp, missing aware_snmp.trap_community");
+		return FAILURE;
+	}
+
+	if (!AWARE_SNMP_G(name_oid)) {
+		php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_snmp, missing aware_snmp.name_oid");
+		return FAILURE;
+	}
+
+	if (!AWARE_SNMP_G(error_msg_oid)) {
+		php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_snmp, missing aware_snmp.error_msg_oid");
+		return FAILURE;
+	}
+
+	if (!AWARE_SNMP_G(trap_oid)) {
+		php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_snmp, missing aware_snmp.trap_oid");
+		return FAILURE;
+	}
+	return SUCCESS;
+}
+
 /* {{{ PHP_MINIT_FUNCTION(aware_snmp) */
 PHP_MINIT_FUNCTION(aware_snmp) 
 {
-	int status = SUCCESS;
+	AwareModuleRegisterStatus reg_status;
 	
-	ZEND_INIT_MODULE_GLOBALS(aware_snmp, php_aware_snmp_init_globals, NULL);
-	REGISTER_INI_ENTRIES();
+	reg_status = php_aware_register_storage_module(php_aware_storage_module_snmp_ptr TSRMLS_CC);
 	
-	if (!AWARE_SNMP_G(trap_host)) {
-		php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_snmp, missing aware_snmp.trap_host");
-		status = FAILURE;
-	}
+	if (reg_status == AwareModuleRegistered) {
+		ZEND_INIT_MODULE_GLOBALS(aware_snmp, php_aware_snmp_init_globals, NULL);
+		REGISTER_INI_ENTRIES();
 	
-	if (!AWARE_SNMP_G(trap_community)) {
-		php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_snmp, missing aware_snmp.trap_community");
-		status = FAILURE;
-	}
-	
-	if (!AWARE_SNMP_G(name_oid)) {
-		php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_snmp, missing aware_snmp.name_oid");
-		status = FAILURE;
-	}
-	
-	if (!AWARE_SNMP_G(error_msg_oid)) {
-		php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_snmp, missing aware_snmp.error_msg_oid");
-		status = FAILURE;
-	}
-	
-	if (!AWARE_SNMP_G(trap_oid)) {
-		php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_snmp, missing aware_snmp.trap_oid");
-		status = FAILURE;
-	}
-	
-	if (status == SUCCESS && php_aware_register_storage_module(php_aware_storage_module_snmp_ptr) == SUCCESS) {
-		return SUCCESS;
-	} else {
+		if (php_aware_snmp_check_config(TSRMLS_C) == FAILURE) {
+			return FAILURE;
+		}
+		
+	} else if (reg_status == AwareModuleFailed) {
 		return FAILURE;
 	}
+	return SUCCESS;
 }
 /* }}} */
 

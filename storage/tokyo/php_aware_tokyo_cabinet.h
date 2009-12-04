@@ -16,57 +16,24 @@
    +----------------------------------------------------------------------+
 */
 
-#ifndef _PHP_AWARE_SNMP_H_
-# define _PHP_AWARE_SNMP_H_
+#ifndef PHP_AWARE_TOKYO_CABINET_H
+# define PHP_AWARE_TOKYO_CABINET_H
 
-#define PHP_AWARE_SNMP_EXTVER "0.0.1-dev"
+#include <tcutil.h>
+#include <tctdb.h>
 
-#include "php.h"
-#include "php_ini.h"
+TCTDB *php_aware_cabinet_init();
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
+zend_bool php_aware_cabinet_open(TCTDB *cabinet, const char *file_path, int mode);
 
-#include <ext/aware/php_aware.h>
-#include <ext/aware/php_aware_storage.h>
+zend_bool php_aware_cabinet_optimize(TCTDB *cabinet);
 
-#include <net-snmp/net-snmp-config.h>
-#include <net-snmp/net-snmp-includes.h>
+zend_bool php_aware_cabinet_put(TCTDB *cabinet, const char *uuid, const char *event, int event_len);
 
-ZEND_BEGIN_MODULE_GLOBALS(aware_snmp)
-	netsnmp_session *snmp_sess;
-	char *trap_host;
-	char *trap_community;
+zend_bool php_aware_cabinet_get(TCTDB *cabinet, const char *uuid, zval *return_value);
 
-	char *app_key;
+zend_bool php_aware_cabinet_close(TCTDB *cabinet);
 
-	char *name_oid;
-	char *error_msg_oid;
-	char *trap_oid;
-	char *user_msg_oid;
-
-	long max_traps;
-	long current_hour;
-	long sent_traps;
-ZEND_END_MODULE_GLOBALS(aware_snmp)
-
-ZEND_EXTERN_MODULE_GLOBALS(aware_snmp)
-
-#ifdef ZTS
-# define AWARE_SNMP_G(v) TSRMG(aware_snmp_globals_id, zend_aware_snmp_globals *, v)
-#else
-# define AWARE_SNMP_G(v) (aware_snmp_globals.v)
-#endif
-
-/* Hook into aware module */
-extern php_aware_storage_module php_aware_storage_module_snmp;
-#define php_aware_storage_module_snmp_ptr &php_aware_storage_module_snmp
-
-/* Normal PHP entry */
-extern zend_module_entry aware_snmp_module_entry;
-#define phpext_aware_snmp_ptr &aware_snmp_module_entry
-
-PHP_AWARE_STORAGE_FUNCS(snmp);
+void php_aware_cabinet_deinit(TCTDB *cabinet);
 
 #endif
