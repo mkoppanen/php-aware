@@ -87,6 +87,9 @@ PHP_FUNCTION(__aware_error_handler_callback)
 		if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zz|zzz", &args[0], &args[1], &args[2], &args[3], &args[4]) != SUCCESS) {
 			return;
 		}
+		
+		aware_printf("Invoking error handler: %s\n", Z_STRVAL_P(AWARE_G(user_error_handler)));
+		
 		php_aware_invoke_handler(Z_LVAL_P(args[0]) TSRMLS_CC, Z_STRVAL_P(args[2]), Z_LVAL_P(args[3]), Z_STRVAL_P(args[1]));
 		call_user_function(EG(function_table), NULL, AWARE_G(user_error_handler), &retval, 5, args TSRMLS_CC);
 	}
@@ -118,12 +121,12 @@ PHP_FUNCTION(aware_set_error_handler)
 			ZVAL_STRING(tmp, Z_STRVAL_P(EG(user_error_handler)), 1);
 
 			/* free previous error handler */
-			if (AWARE_G(user_error_handler) && Z_TYPE_P(AWARE_G(user_error_handler)) == IS_STRING) {
-				efree(Z_STRVAL_P(AWARE_G(user_error_handler)));
-			} else {
-				MAKE_STD_ZVAL(AWARE_G(user_error_handler));
+			if (AWARE_G(user_error_handler)) {
+				zval_dtor(AWARE_G(user_error_handler));
+				FREE_ZVAL(AWARE_G(user_error_handler));
 			}
-
+			
+			MAKE_STD_ZVAL(AWARE_G(user_error_handler));
 			ZVAL_STRING(AWARE_G(user_error_handler), Z_STRVAL_P(EG(user_error_handler)), 1);
 
 			/* Create a new handler */
@@ -131,6 +134,10 @@ PHP_FUNCTION(aware_set_error_handler)
 
 			zval_dtor(EG(user_error_handler));
 			ZVAL_STRING(EG(user_error_handler), "__aware_error_handler_callback", 1);
+		} else {
+			zval_dtor(AWARE_G(user_error_handler));
+			FREE_ZVAL(AWARE_G(user_error_handler));
+			AWARE_G(user_error_handler) = NULL;
 		}
 	}
 }
@@ -140,11 +147,30 @@ PHP_FUNCTION(aware_restore_error_handler)
 	if (AWARE_G(orig_restore_error_handler)) {
 		AWARE_G(orig_restore_error_handler)(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 
+		if (AWARE_G(user_error_handler)) {
+			zval_dtor(AWARE_G(user_error_handler));
+			FREE_ZVAL(AWARE_G(user_error_handler));
+			AWARE_G(user_error_handler) = NULL;
+		}
+
 		/* Delete the top element from our stack */
 		if (zend_ptr_stack_num_elements(&AWARE_G(user_error_handlers)) > 0) {
 			zval *tmp = (zval *)zend_ptr_stack_pop(&AWARE_G(user_error_handlers));
 			zval_dtor(tmp);
 			FREE_ZVAL(tmp);
+			tmp = NULL;
+			
+			if (zend_ptr_stack_num_elements(&AWARE_G(user_error_handlers)) > 0) {
+				tmp = (zval *)zend_ptr_stack_pop(&AWARE_G(user_error_handlers));
+				zend_ptr_stack_push(&AWARE_G(user_error_handlers), tmp);
+				
+				if (AWARE_G(user_error_handler)) {
+					zval_dtor(AWARE_G(user_error_handler));
+					FREE_ZVAL(AWARE_G(user_error_handler));
+				}
+				MAKE_STD_ZVAL(AWARE_G(user_error_handler));
+				ZVAL_STRING(AWARE_G(user_error_handler), Z_STRVAL_P(tmp), 1);
+			}
 		}
 	}
 }

@@ -13,7 +13,7 @@ function my_error_handler() {
 
 set_error_handler('my_error_handler', E_WARNING);
 
-sdfsfsdf;
+this_constant_does_not_exist;
 
 foreach (null as $k) {}
 
@@ -21,5 +21,5 @@ foreach (null as $k) {}
 --EXPECTF--
 string(1) "1"
 
-Notice: Use of undefined constant sdfsfsdf - assumed 'sdfsfsdf' in /tmp/aware/tests/003_error_handler_levels.php on line %d
+Notice: Use of undefined constant this_constant_does_not_exist - assumed 'this_constant_does_not_exist' in %s on line %d
 Called

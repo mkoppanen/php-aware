@@ -58,7 +58,6 @@ ZEND_BEGIN_MODULE_GLOBALS(aware)
 	zend_stack user_error_handler_levels;
 	
 	zval *user_error_handler;
-	
 ZEND_END_MODULE_GLOBALS(aware)
 
 ZEND_EXTERN_MODULE_GLOBALS(aware)
