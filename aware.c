@@ -327,7 +327,7 @@ static PHP_INI_MH(OnUpdateLogLevel)
 
 PHP_INI_BEGIN()
 	STD_PHP_INI_ENTRY("aware.enabled",			"1",		PHP_INI_PERDIR, OnUpdateBool, 		enabled,			zend_aware_globals, aware_globals)
-	STD_PHP_INI_ENTRY("aware.log_level",		"22519",	PHP_INI_PERDIR, OnUpdateLogLevel,	log_level,			zend_aware_globals, aware_globals)
+	STD_PHP_INI_ENTRY("aware.log_level",		"E_ALL & ~E_NOTICE & ~E_STRICT & ~E_DEPRECATED",	PHP_INI_PERDIR, OnUpdateLogLevel,	log_level,			zend_aware_globals, aware_globals)
 	STD_PHP_INI_ENTRY("aware.depth",			"10",		PHP_INI_PERDIR, OnUpdateLong,		depth,				zend_aware_globals, aware_globals)
 	STD_PHP_INI_ENTRY("aware.log_get",			"1",		PHP_INI_PERDIR, OnUpdateBool,		log_get,			zend_aware_globals, aware_globals)
 	STD_PHP_INI_ENTRY("aware.log_post",			"1",		PHP_INI_PERDIR, OnUpdateBool,		log_post,			zend_aware_globals, aware_globals)
@@ -346,7 +346,7 @@ static void php_aware_init_globals(zend_aware_globals *aware_globals)
 {
 	aware_globals->storage_modules	= NULL;
 	aware_globals->enabled	   		= 1;
-	aware_globals->log_level   		= 22519;
+	aware_globals->log_level   		= atoi(E_ALL & ~E_NOTICE & ~E_STRICT & ~E_DEPRECATED);
 	aware_globals->depth	   		= 10;
 	aware_globals->enabled	   		= 1;
 	aware_globals->log_get	   		= 1;

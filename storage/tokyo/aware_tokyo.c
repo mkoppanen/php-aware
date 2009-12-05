@@ -49,16 +49,21 @@ PHP_AWARE_GET_FUNC(tokyo)
 
 PHP_AWARE_STORE_FUNC(tokyo)
 {
+	AwareOperationStatus retval = AwareOperationNotSupported;
+	
 	smart_str string = {0};
-	php_aware_storage_serialize(event, &string TSRMLS_CC);
 	
 	if (AWARE_TOKYO_G(backend) == AwareTokyoBackendCabinet) {
-		if (!php_aware_cabinet_put(AWARE_TOKYO_G(cabinet), uuid, string.c, string.len)) {
-			return AwareOperationFailure;
+		php_aware_storage_serialize(event, &string TSRMLS_CC);
+
+		if (php_aware_cabinet_put(AWARE_TOKYO_G(cabinet), uuid, string.c, string.len)) {
+			retval = AwareOperationSuccess;
+		} else {
+			retval = AwareOperationFailure;
 		}
-		return AwareOperationSuccess;
+		smart_str_free(&string);
 	}
-	return AwareOperationNotSupported;
+	return retval;
 }
 
 PHP_AWARE_GET_LIST_FUNC(tokyo)
