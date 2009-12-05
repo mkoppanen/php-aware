@@ -26,66 +26,111 @@ php_aware_storage_module php_aware_storage_module_tokyo = {
 
 PHP_AWARE_CONNECT_FUNC(tokyo)
 {
+	AwareOperationStatus retval = AwareOperationNotSupported;
+	
 	if (AWARE_TOKYO_G(backend) == AwareTokyoBackendCabinet) {
-		/* TODO: non-blocking locks? */
-		if (!php_aware_cabinet_open(AWARE_TOKYO_G(cabinet), AWARE_TOKYO_G(cabinet_file), TDBOWRITER|TDBOCREAT)) {
-			return AwareOperationFailure;
+		int mode = TDBOWRITER|TDBOCREAT;
+		
+		if (!AWARE_TOKYO_G(cabinet_block)) {
+			mode |= TDBOLCKNB;
 		}
-		return AwareOperationSuccess;
+		if (php_aware_cabinet_open(AWARE_TOKYO_G(cabinet), AWARE_TOKYO_G(cabinet_file), mode)) {
+			retval = AwareOperationSuccess;
+		} else {
+			retval = AwareOperationFailure;
+		}
+	} else if (AWARE_TOKYO_G(backend) == AwareTokyoBackendTyrant) {
+		if (php_aware_tyrant_open(AWARE_TOKYO_G(tyrant), AWARE_TOKYO_G(tyrant_host), AWARE_TOKYO_G(tyrant_port))) {
+			retval = AwareOperationSuccess;
+		} else {
+			retval = AwareOperationFailure;
+		}
 	}
-	return AwareOperationNotSupported;
+	return retval;
 }
 
 PHP_AWARE_GET_FUNC(tokyo)
 {
+	AwareOperationStatus retval = AwareOperationNotSupported;
+	
 	if (AWARE_TOKYO_G(backend) == AwareTokyoBackendCabinet) {
-		if (!php_aware_cabinet_get(AWARE_TOKYO_G(cabinet), uuid, event)) {
-			return AwareOperationFailure;
+		if (php_aware_cabinet_get(AWARE_TOKYO_G(cabinet), uuid, event TSRMLS_CC)) {
+			retval = AwareOperationSuccess;
+		} else {
+			retval = AwareOperationFailure;
 		}
-		return AwareOperationSuccess;
+	} else if (AWARE_TOKYO_G(backend) == AwareTokyoBackendTyrant) {
+		if (php_aware_tyrant_get(AWARE_TOKYO_G(tyrant), uuid, event TSRMLS_CC)) {
+			retval = AwareOperationSuccess;
+		} else {
+			retval = AwareOperationFailure;
+		}
 	}
-	return AwareOperationNotSupported;
+	return retval;
 }
 
 PHP_AWARE_STORE_FUNC(tokyo)
 {
 	AwareOperationStatus retval = AwareOperationNotSupported;
-	
 	smart_str string = {0};
 	
+	php_aware_storage_serialize(event, &string TSRMLS_CC);
+	
 	if (AWARE_TOKYO_G(backend) == AwareTokyoBackendCabinet) {
-		php_aware_storage_serialize(event, &string TSRMLS_CC);
-
 		if (php_aware_cabinet_put(AWARE_TOKYO_G(cabinet), uuid, string.c, string.len)) {
 			retval = AwareOperationSuccess;
 		} else {
 			retval = AwareOperationFailure;
 		}
-		smart_str_free(&string);
+	} else if (AWARE_TOKYO_G(backend) == AwareTokyoBackendTyrant) {
+		if (php_aware_tyrant_put(AWARE_TOKYO_G(tyrant), uuid, string.c, string.len)) {
+			retval = AwareOperationSuccess;
+		} else {
+			retval = AwareOperationFailure;
+		}
 	}
+	smart_str_free(&string);
 	return retval;
 }
 
 PHP_AWARE_GET_LIST_FUNC(tokyo)
 {
+	AwareOperationStatus retval = AwareOperationNotSupported;
+	
 	if (AWARE_TOKYO_G(backend) == AwareTokyoBackendCabinet) {
-		if (!php_aware_cabinet_get_list(AWARE_TOKYO_G(cabinet), start, limit, events)) {
-			return AwareOperationFailure;
+		if (php_aware_cabinet_get_list(AWARE_TOKYO_G(cabinet), start, limit, events)) {
+			retval = AwareOperationSuccess;
+		} else {
+			retval = AwareOperationFailure;
 		}
-		return AwareOperationSuccess;
+	} else if (AWARE_TOKYO_G(backend) == AwareTokyoBackendTyrant) {
+		if (php_aware_tyrant_get_list(AWARE_TOKYO_G(tyrant), start, limit, events)) {
+			retval = AwareOperationSuccess;
+		} else {
+			retval = AwareOperationFailure;
+		}
 	}
-	return AwareOperationNotSupported;
+	return retval;
 }
 
 PHP_AWARE_DISCONNECT_FUNC(tokyo)
 {
+	AwareOperationStatus retval = AwareOperationNotSupported;
+	
 	if (AWARE_TOKYO_G(backend) == AwareTokyoBackendCabinet) {
-		if (!php_aware_cabinet_close(AWARE_TOKYO_G(cabinet))) {
-			return AwareOperationFailure;
+		if (php_aware_cabinet_close(AWARE_TOKYO_G(cabinet))) {
+			retval = AwareOperationSuccess;
+		} else {
+			retval = AwareOperationFailure;
 		}
-		return AwareOperationSuccess;
+	} else if (AWARE_TOKYO_G(backend) == AwareTokyoBackendTyrant) {
+		if (php_aware_tyrant_close(AWARE_TOKYO_G(tyrant))) {
+			retval = AwareOperationSuccess;
+		} else {
+			retval = AwareOperationFailure;
+		}
 	}
-	return AwareOperationNotSupported;
+	return retval;
 }
 
 static PHP_INI_MH(OnUpdateBackend)
@@ -114,19 +159,22 @@ PHP_INI_BEGIN()
 
 	/* Tokyo Cabinet config */
 	STD_PHP_INI_ENTRY("aware_tokyo.cabinet_file", "/tmp/casket.tct", PHP_INI_PERDIR, OnUpdateString, cabinet_file, zend_aware_tokyo_globals, aware_tokyo_globals)
+	STD_PHP_INI_ENTRY("aware_tokyo.cabinet_block", "1", PHP_INI_PERDIR, OnUpdateBool, cabinet_block, zend_aware_tokyo_globals, aware_tokyo_globals)
+	
 PHP_INI_END()
 
 static void php_aware_tokyo_init_globals(zend_aware_tokyo_globals *aware_tokyo_globals)
 {
 	aware_tokyo_globals->backend_str = NULL;
-	aware_tokyo_globals->backend = AwareTokyoBackendNotSet;
+	aware_tokyo_globals->backend     = AwareTokyoBackendNotSet;
 	
 	/* If backend == tyrant */
 	aware_tokyo_globals->tyrant_host = NULL;
 	aware_tokyo_globals->tyrant_port = 0;
 	
 	/* If backend == cabinet */
-	aware_tokyo_globals->cabinet_file = NULL;
+	aware_tokyo_globals->cabinet_file  = NULL;
+	aware_tokyo_globals->cabinet_block = 1;
 }
 
 static zend_bool php_aware_tokyo_init_backend(AwareTokyoBackend configured_backend) 
@@ -159,6 +207,35 @@ static zend_bool php_aware_tokyo_init_backend(AwareTokyoBackend configured_backe
 			return 0;
 		}
 		return 1;
+	} else if (configured_backend == AwareTokyoBackendTyrant) {
+		int ecode;
+		
+		AWARE_TOKYO_G(tyrant) = php_aware_tyrant_init();
+		
+		if (!AWARE_TOKYO_G(tyrant)) {
+			php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Failed to allocate tokyo cabinet handle");
+			return 0;
+		}
+		
+		if (!php_aware_tyrant_open(AWARE_TOKYO_G(tyrant), AWARE_TOKYO_G(tyrant_host), AWARE_TOKYO_G(tyrant_port))) {
+			ecode = tcrdbecode(AWARE_TOKYO_G(tyrant));
+			php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Failed to open %s:%d: %s", AWARE_TOKYO_G(tyrant_host), AWARE_TOKYO_G(tyrant_port), tcrdberrmsg(ecode));
+			return 0;
+		}
+		
+		if (!php_aware_tyrant_optimize(AWARE_TOKYO_G(tyrant))) {
+			ecode = tcrdbecode(AWARE_TOKYO_G(tyrant));
+			php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Failed to optimize %s:%d: %s", AWARE_TOKYO_G(tyrant_host), AWARE_TOKYO_G(tyrant_port), tcrdberrmsg(ecode));
+			return 0;	
+		}
+		
+		if (!php_aware_tyrant_close(AWARE_TOKYO_G(tyrant))) {
+			ecode = tcrdbecode(AWARE_TOKYO_G(tyrant));
+			php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Failed to close %s:%d: %s", AWARE_TOKYO_G(tyrant_host), AWARE_TOKYO_G(tyrant_port), tcrdberrmsg(ecode));
+			return 0;
+		}
+		return 1;
+		
 	}
 	return 0;
 }
@@ -181,6 +258,7 @@ PHP_MINIT_FUNCTION(aware_tokyo)
 				return FAILURE;
 			}
 			if (!php_aware_tokyo_init_backend(AWARE_TOKYO_G(backend))) {
+				php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Failed to initialize the tokyo backend");
 				return FAILURE;
 			}
 			AWARE_TOKYO_G(enabled) = 1;
@@ -207,6 +285,8 @@ PHP_MSHUTDOWN_FUNCTION(aware_tokyo)
 	if (AWARE_TOKYO_G(enabled)) {
 		if (AWARE_TOKYO_G(backend) == AwareTokyoBackendCabinet) {
 			php_aware_cabinet_deinit(AWARE_TOKYO_G(cabinet));
+		} else if (AWARE_TOKYO_G(backend) == AwareTokyoBackendTyrant) {
+			php_aware_tyrant_deinit(AWARE_TOKYO_G(tyrant));
 		}
 	}
 	

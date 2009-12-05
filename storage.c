@@ -38,6 +38,11 @@ static zend_bool php_aware_storage_module_is_configured(const char *mod_name TSR
 {
 	zend_bool retval = 0;
 	char *pch, *last, *ptr;
+	
+	/* If aware is not enabled, don't register anything */
+	if (!AWARE_G(enabled)) {
+		return 0;
+	}
 
 	ptr = estrdup(AWARE_G(storage_modules));
 	pch = php_strtok_r(ptr, ",", &last);

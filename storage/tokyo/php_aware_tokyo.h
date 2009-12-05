@@ -31,13 +31,13 @@
 #include <ext/aware/php_aware.h>
 #include <ext/aware/php_aware_storage.h>
 
-#include <tcrdb.h>
 #include <stdlib.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
 
 #include "php_aware_tokyo_cabinet.h"
+#include "php_aware_tokyo_tyrant.h"
 
 typedef enum _AwareTokyoBackend {
 	AwareTokyoBackendNotSet,
@@ -54,12 +54,13 @@ ZEND_BEGIN_MODULE_GLOBALS(aware_tokyo)
 	long tyrant_port;
 	
 	char *cabinet_file;
+	zend_bool cabinet_block;
 	
 	/* cabinet handle */
 	TCTDB *cabinet;
 	
 	/* tyrant connection */
-	TCRDB *rdb;
+	TCRDB *tyrant;
 	
 	zend_bool enabled;
 

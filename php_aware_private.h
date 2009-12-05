@@ -22,7 +22,7 @@
 #include "php_aware.h"
 #include "php_aware_storage.h"
 
-void php_aware_capture_error_ex(int type, const char *error_filename, const uint error_lineno, zend_bool call_orig, const char *format, va_list args);
+void php_aware_capture_error_ex(zval *event, int type, const char *error_filename, const uint error_lineno, zend_bool free_event, const char *format, va_list args);
 
 void php_aware_invoke_handler(int type, const char *error_filename, const uint error_lineno, const char *format, ...);
 

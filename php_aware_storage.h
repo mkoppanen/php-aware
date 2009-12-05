@@ -22,12 +22,6 @@
 #include "php_aware.h"
 #include "ext/standard/php_smart_str.h"
 
-#define PHP_AWARE_CONNECT_ARGS		TSRMLS_D
-#define PHP_AWARE_GET_ARGS			const char *uuid, zval *event TSRMLS_DC
-#define PHP_AWARE_STORE_ARGS		const char *uuid, zval *event, const char *error_filename, long error_lineno TSRMLS_DC
-#define PHP_AWARE_GET_LIST_ARGS		long start, long limit, zval *events TSRMLS_DC
-#define PHP_AWARE_DISCONNECT_ARGS	TSRMLS_D
-
 typedef enum _AwareOperationStatus {
 	AwareOperationFailure,
 	AwareOperationSuccess,
@@ -39,6 +33,12 @@ typedef enum _AwareModuleRegisterStatus {
 	AwareModuleRegistered,
 	AwareModuleFailed
 } AwareModuleRegisterStatus;
+
+#define PHP_AWARE_CONNECT_ARGS		TSRMLS_D
+#define PHP_AWARE_GET_ARGS			const char *uuid, zval *event TSRMLS_DC
+#define PHP_AWARE_STORE_ARGS		const char *uuid, zval *event, const char *error_filename, long error_lineno TSRMLS_DC
+#define PHP_AWARE_GET_LIST_ARGS		long start, long limit, zval *events TSRMLS_DC
+#define PHP_AWARE_DISCONNECT_ARGS	TSRMLS_D
 
 /* Storage structure for storing the events */
 typedef struct _php_aware_storage_module {

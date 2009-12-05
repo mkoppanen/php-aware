@@ -80,7 +80,7 @@ dnl Tokyo Cabinet PKG_CONFIG
 
   export PKG_CONFIG_PATH="$ORIG_PKG_CONFIG_PATH"
 
-  PHP_NEW_EXTENSION(aware_tokyo, aware_tokyo.c aware_tokyo_cabinet.c, $ext_shared)
+  PHP_NEW_EXTENSION(aware_tokyo, aware_tokyo.c aware_tokyo_cabinet.c aware_tokyo_tyrant.c, $ext_shared)
   PHP_ADD_EXTENSION_DEP(aware_tokyo, aware)
 
   PHP_SUBST(AWARE_TOKYO_SHARED_LIBADD)

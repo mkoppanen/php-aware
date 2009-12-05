@@ -43,7 +43,7 @@ ZEND_BEGIN_MODULE_GLOBALS(aware)
 	zend_bool log_server;
 	zend_bool log_generated;
 	zend_bool log_backtrace;
-	
+
 	long log_level;
 	long depth;
 	
