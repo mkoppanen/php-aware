@@ -32,6 +32,8 @@ zend_bool php_aware_cabinet_put(TCTDB *cabinet, const char *uuid, const char *ev
 
 zend_bool php_aware_cabinet_get(TCTDB *cabinet, const char *uuid, zval *return_value);
 
+zend_bool php_aware_cabinet_get_list(TCTDB *cabinet, long start, long limit, zval *return_value);
+
 zend_bool php_aware_cabinet_close(TCTDB *cabinet);
 
 void php_aware_cabinet_deinit(TCTDB *cabinet);

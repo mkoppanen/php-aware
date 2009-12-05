@@ -28,7 +28,7 @@ PHP_AWARE_CONNECT_FUNC(tokyo)
 {
 	if (AWARE_TOKYO_G(backend) == AwareTokyoBackendCabinet) {
 		/* TODO: non-blocking locks? */
-		if (!php_aware_cabinet_open(AWARE_TOKYO_G(cabinet), AWARE_TOKYO_G(cabinet_path), TDBOWRITER|TDBOCREAT)) {
+		if (!php_aware_cabinet_open(AWARE_TOKYO_G(cabinet), AWARE_TOKYO_G(cabinet_file), TDBOWRITER|TDBOCREAT)) {
 			return AwareOperationFailure;
 		}
 		return AwareOperationSuccess;
@@ -108,7 +108,7 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_ENTRY("aware_tokyo.tyrant_port", "1978", PHP_INI_PERDIR, OnUpdateLong, tyrant_port, zend_aware_tokyo_globals, aware_tokyo_globals)
 
 	/* Tokyo Cabinet config */
-	STD_PHP_INI_ENTRY("aware_tokyo.cabinet_path", "/tmp/casket.tct", PHP_INI_PERDIR, OnUpdateString, cabinet_path, zend_aware_tokyo_globals, aware_tokyo_globals)
+	STD_PHP_INI_ENTRY("aware_tokyo.cabinet_file", "/tmp/casket.tct", PHP_INI_PERDIR, OnUpdateString, cabinet_file, zend_aware_tokyo_globals, aware_tokyo_globals)
 PHP_INI_END()
 
 static void php_aware_tokyo_init_globals(zend_aware_tokyo_globals *aware_tokyo_globals)
@@ -121,52 +121,74 @@ static void php_aware_tokyo_init_globals(zend_aware_tokyo_globals *aware_tokyo_g
 	aware_tokyo_globals->tyrant_port = 0;
 	
 	/* If backend == cabinet */
-	aware_tokyo_globals->cabinet_path = NULL;
+	aware_tokyo_globals->cabinet_file = NULL;
+}
+
+static zend_bool php_aware_tokyo_init_backend(AwareTokyoBackend configured_backend) 
+{
+	if (configured_backend == AwareTokyoBackendCabinet) {
+		int ecode;
+		
+		AWARE_TOKYO_G(cabinet) = php_aware_cabinet_init();
+		
+		if (!AWARE_TOKYO_G(cabinet)) {
+			php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Failed to allocate tokyo cabinet handle");
+			return 0;
+		}
+		
+		if (!php_aware_cabinet_open(AWARE_TOKYO_G(cabinet), AWARE_TOKYO_G(cabinet_file), TDBOWRITER|TDBOCREAT)) {
+			ecode = tctdbecode(AWARE_TOKYO_G(cabinet));
+			php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Failed to open %s: %s", AWARE_TOKYO_G(cabinet_file), tctdberrmsg(ecode));
+			return 0;
+		}
+		
+		if (!php_aware_cabinet_optimize(AWARE_TOKYO_G(cabinet))) {
+			ecode = tctdbecode(AWARE_TOKYO_G(cabinet));
+			php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Failed to optimize %s: %s", AWARE_TOKYO_G(cabinet_file), tctdberrmsg(ecode));
+			return 0;	
+		}
+		
+		if (!php_aware_cabinet_close(AWARE_TOKYO_G(cabinet))) {
+			ecode = tctdbecode(AWARE_TOKYO_G(cabinet));
+			php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Failed to close %s: %s", AWARE_TOKYO_G(cabinet_file), tctdberrmsg(ecode));
+			return 0;
+		}
+		return 1;
+	}
+	return 0;
 }
 
 /* {{{ PHP_MINIT_FUNCTION(aware_tokyo) */
 PHP_MINIT_FUNCTION(aware_tokyo) 
 {
+	AwareModuleRegisterStatus status;
+	
 	ZEND_INIT_MODULE_GLOBALS(aware_tokyo, php_aware_tokyo_init_globals, NULL);
 	REGISTER_INI_ENTRIES();
 	
-	if (php_aware_register_storage_module(php_aware_storage_module_tokyo_ptr TSRMLS_CC) == AwareModuleFailed) {
-		return FAILURE;
-	} else {
-		/* No backend */
-		if (AWARE_TOKYO_G(backend) == AwareTokyoBackendNotSet) {
-			php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_tokyo, no aware_tokyo.backend defined");
-			return FAILURE;
-		}
+	status = php_aware_register_storage_module(php_aware_storage_module_tokyo_ptr TSRMLS_CC);
+	
+	switch (status) 
+	{
+		case AwareModuleRegistered:	
+			if (AWARE_TOKYO_G(backend) == AwareTokyoBackendNotSet) {
+				php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_tokyo, no aware_tokyo.backend defined");
+				return FAILURE;
+			}
+			if (!php_aware_tokyo_init_backend(AWARE_TOKYO_G(backend))) {
+				return FAILURE;
+			}
+			AWARE_TOKYO_G(enabled) = 1;
+		break;
 		
-		if (AWARE_TOKYO_G(backend) == AwareTokyoBackendCabinet) {
-			int ecode;
-			
-			AWARE_TOKYO_G(cabinet) = php_aware_cabinet_init();
-			
-			if (!AWARE_TOKYO_G(cabinet)) {
-				php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Failed to allocate tokyo cabinet handle");
-				return FAILURE;
-			}
-			
-			if (!php_aware_cabinet_open(AWARE_TOKYO_G(cabinet), AWARE_TOKYO_G(cabinet_path), TDBOWRITER|TDBOCREAT)) {
-				ecode = tctdbecode(AWARE_TOKYO_G(cabinet));
-				php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Failed to open %s: %s", AWARE_TOKYO_G(cabinet_path), tctdberrmsg(ecode));
-				return FAILURE;
-			}
-			
-			if (!php_aware_cabinet_optimize(AWARE_TOKYO_G(cabinet))) {
-				ecode = tctdbecode(AWARE_TOKYO_G(cabinet));
-				php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Failed to optimize %s: %s", AWARE_TOKYO_G(cabinet_path), tctdberrmsg(ecode));
-				return FAILURE;	
-			}
-			
-			if (!php_aware_cabinet_close(AWARE_TOKYO_G(cabinet))) {
-				ecode = tctdbecode(AWARE_TOKYO_G(cabinet));
-				php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Failed to close %s: %s", AWARE_TOKYO_G(cabinet_path), tctdberrmsg(ecode));
-				return FAILURE;
-			}
-		}
+		case AwareModuleFailed:
+			AWARE_TOKYO_G(enabled) = 0;
+			return FAILURE;
+		break;
+
+		case AwareModuleNotConfigured:
+			AWARE_TOKYO_G(enabled) = 0;
+		break;	
 	}
 	return SUCCESS;
 }
@@ -176,6 +198,13 @@ PHP_MINIT_FUNCTION(aware_tokyo)
 PHP_MSHUTDOWN_FUNCTION(aware_tokyo)
 {
 	UNREGISTER_INI_ENTRIES();
+	
+	if (AWARE_TOKYO_G(enabled)) {
+		if (AWARE_TOKYO_G(backend) == AwareTokyoBackendCabinet) {
+			php_aware_cabinet_deinit(AWARE_TOKYO_G(cabinet));
+		}
+	}
+	
 	return SUCCESS;
 }
 

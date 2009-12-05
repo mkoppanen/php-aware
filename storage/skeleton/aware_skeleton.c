@@ -61,15 +61,29 @@ static void php_aware_skeleton_init_globals(zend_aware_skeleton_globals *aware_s
 /* {{{ PHP_MINIT_FUNCTION(aware_skeleton) */
 PHP_MINIT_FUNCTION(aware_skeleton) 
 {
+	AwareModuleRegisterStatus reg_status;
+	
 	ZEND_INIT_MODULE_GLOBALS(aware_skeleton, php_aware_skeleton_init_globals, NULL);
 	REGISTER_INI_ENTRIES();
 	
-	if (php_aware_register_storage_module(php_aware_storage_module_skeleton_ptr TSRMLS_CC) == AwareModuleFailed) {
-		return FAILURE;
-	} else {
-		aware_printf("Registered skeleton module successfully\n");
-		return SUCCESS;
+	reg_status = php_aware_register_storage_module(php_aware_storage_module_skeleton_ptr TSRMLS_CC);
+	
+	switch (reg_status) 
+	{
+		case AwareModuleRegistered:	
+			AWARE_SKELETON_G(enabled) = 1;
+		break;
+		
+		case AwareModuleFailed:
+			AWARE_SKELETON_G(enabled) = 0;
+			return FAILURE;
+		break;
+
+		case AwareModuleNotConfigured:
+			AWARE_SKELETON_G(enabled) = 0;
+		break;	
 	}
+	return SUCCESS;
 }
 /* }}} */
 

@@ -13,5 +13,7 @@ cd storage/files && \
 phpize && ./configure ${CONFIGURE_OPTS} && make clean && make && make install && \
 cd ../snmp && \
 phpize && ./configure ${CONFIGURE_OPTS} && make clean && make && make install && \
+cd ../tokyo && \
+phpize && ./configure ${CONFIGURE_OPTS} && make clean && make && make install && \
 cd ../skeleton && \
 phpize && ./configure ${CONFIGURE_OPTS} && make clean && make && make install

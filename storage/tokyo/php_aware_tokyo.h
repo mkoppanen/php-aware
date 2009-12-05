@@ -53,13 +53,15 @@ ZEND_BEGIN_MODULE_GLOBALS(aware_tokyo)
 	char *tyrant_host;
 	long tyrant_port;
 	
-	char *cabinet_path;
+	char *cabinet_file;
 	
 	/* cabinet handle */
 	TCTDB *cabinet;
 	
 	/* tyrant connection */
 	TCRDB *rdb;
+	
+	zend_bool enabled;
 
 ZEND_END_MODULE_GLOBALS(aware_tokyo)
 

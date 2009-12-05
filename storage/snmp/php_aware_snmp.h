@@ -49,6 +49,8 @@ ZEND_BEGIN_MODULE_GLOBALS(aware_snmp)
 	long max_traps;
 	long current_hour;
 	long sent_traps;
+	
+	zend_bool enabled;
 ZEND_END_MODULE_GLOBALS(aware_snmp)
 
 ZEND_EXTERN_MODULE_GLOBALS(aware_snmp)

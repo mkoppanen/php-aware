@@ -33,6 +33,7 @@
 
 ZEND_BEGIN_MODULE_GLOBALS(aware_skeleton)
 	char *foobar;
+	zend_bool enabled;
 ZEND_END_MODULE_GLOBALS(aware_skeleton)
 
 ZEND_EXTERN_MODULE_GLOBALS(aware_skeleton)

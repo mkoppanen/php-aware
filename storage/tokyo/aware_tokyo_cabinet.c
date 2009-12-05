@@ -40,9 +40,9 @@ zend_bool php_aware_cabinet_put(TCTDB *cabinet, const char *uuid, const char *ev
 {	
 	char timebuf[256];
 	TCMAP *cols;
-	int timebuf_len, status;
+	int status;
 
-	sprintf(timebuf, "%d", time(NULL));
+	sprintf(timebuf, "%lu", (unsigned long)time(NULL));
 	
 	cols = tcmapnew();
 	tcmapput2(cols, "timestamp",timebuf);

@@ -234,18 +234,28 @@ PHP_MINIT_FUNCTION(aware_snmp)
 {
 	AwareModuleRegisterStatus reg_status;
 	
+	ZEND_INIT_MODULE_GLOBALS(aware_snmp, php_aware_snmp_init_globals, NULL);
+	REGISTER_INI_ENTRIES();
+	
 	reg_status = php_aware_register_storage_module(php_aware_storage_module_snmp_ptr TSRMLS_CC);
 	
-	if (reg_status == AwareModuleRegistered) {
-		ZEND_INIT_MODULE_GLOBALS(aware_snmp, php_aware_snmp_init_globals, NULL);
-		REGISTER_INI_ENTRIES();
-	
-		if (php_aware_snmp_check_config(TSRMLS_C) == FAILURE) {
-			return FAILURE;
-		}
+	switch (reg_status) 
+	{
+		case AwareModuleRegistered:
+			if (php_aware_snmp_check_config(TSRMLS_C) == FAILURE) {
+				return FAILURE;
+			}
+			AWARE_SNMP_G(enabled) = 1;
+		break;
 		
-	} else if (reg_status == AwareModuleFailed) {
-		return FAILURE;
+		case AwareModuleFailed:
+			AWARE_SNMP_G(enabled) = 0;
+			return FAILURE;
+		break;
+
+		case AwareModuleNotConfigured:
+			AWARE_SNMP_G(enabled) = 0;
+		break;
 	}
 	return SUCCESS;
 }
@@ -254,9 +264,11 @@ PHP_MINIT_FUNCTION(aware_snmp)
 /* {{{ PHP_MSHUTDOWN_FUNCTION(aware_snmp) */
 PHP_MSHUTDOWN_FUNCTION(aware_snmp)
 {
-	if (AWARE_SNMP_G(snmp_sess))
-		php_aware_deinit_snmp_session(AWARE_SNMP_G(snmp_sess));
-	
+	if (AWARE_SNMP_G(enabled)) {
+		if (AWARE_SNMP_G(snmp_sess)) {
+			php_aware_deinit_snmp_session(AWARE_SNMP_G(snmp_sess));
+		}
+	}
 	UNREGISTER_INI_ENTRIES();
 	return SUCCESS;
 }

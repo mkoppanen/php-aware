@@ -166,7 +166,6 @@ PHP_MINIT_FUNCTION(aware_files)
 	if (php_aware_register_storage_module(php_aware_storage_module_files_ptr TSRMLS_CC) == AwareModuleFailed) {
 		return FAILURE;
 	} else {
-		aware_printf("Registered files module successfully\n");
 		return SUCCESS;
 	}
 }
