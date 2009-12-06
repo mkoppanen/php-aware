@@ -111,10 +111,12 @@ zend_bool php_aware_stomp_connect(php_aware_stomp_handle *handle,
 		smart_str_0(&headers);
 		
 		if (!php_aware_stomp_send_frame(handle, "CONNECT", &headers, NULL, 1, &response TSRMLS_CC)) {
+			php_stream_close(handle->stream);
 			return retval;
 		}
 	} else {
 		if (!php_aware_stomp_send_frame(handle, "CONNECT", NULL, NULL, 1, &response TSRMLS_CC)) {
+			php_stream_close(handle->stream);
 			return retval;
 		}
 	}
@@ -123,6 +125,8 @@ zend_bool php_aware_stomp_connect(php_aware_stomp_handle *handle,
 		if (response.len >= 9 && !strncmp(response.c, "CONNECTED", 9)) {
 			handle->connected  = 1;
 			retval = 1;
+		} else {
+			php_stream_close(handle->stream);
 		}
 		smart_str_free(&response);
 	}	
@@ -162,6 +166,9 @@ zend_bool php_aware_stomp_send(php_aware_stomp_handle *handle, const char *queue
 
 void php_aware_stomp_disconnect(php_aware_stomp_handle *handle) 
 {
+	if (!handle->connected)
+		return;
+
 	(void) php_aware_stomp_send_frame(handle, "DISCONNECT", NULL, NULL, 0, NULL TSRMLS_CC);
 	php_stream_close(handle->stream);
 	handle->connected = 0;

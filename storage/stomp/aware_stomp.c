@@ -68,7 +68,7 @@ PHP_AWARE_GET_LIST_FUNC(stomp)
 PHP_AWARE_DISCONNECT_FUNC(stomp)
 {
 	(void) php_aware_stomp_disconnect(AWARE_STOMP_G(handle));
-	return AwareOperationNotSupported;
+	return AwareOperationSuccess;
 }
 
 PHP_INI_BEGIN()

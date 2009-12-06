@@ -365,7 +365,9 @@ static void php_aware_init_globals(zend_aware_globals *aware_globals)
 	aware_globals->log_env			= 1;
 	aware_globals->log_backtrace	= 1;
 	aware_globals->log_generated	= 1;
+	
 	aware_globals->slow_request_threshold = 0;
+	aware_globals->memory_usage_threshold = 0;
 	
 	aware_globals->orig_set_error_handler = NULL;
 	aware_globals->user_error_handler = NULL;
@@ -402,7 +404,6 @@ PHP_RINIT_FUNCTION(aware)
 		}
 #endif
 	}
-	
 	return SUCCESS;
 }
 
@@ -438,7 +439,6 @@ PHP_RSHUTDOWN_FUNCTION(aware)
 		if (AWARE_G(memory_usage_threshold)) {
 			php_aware_monitor_memory_usage(AWARE_G(memory_usage_threshold));
 		}
-		
 		/* restore error handler */
 		php_aware_rshutdown_restore();
 	}
