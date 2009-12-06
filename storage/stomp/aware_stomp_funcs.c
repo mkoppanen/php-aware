@@ -111,9 +111,11 @@ zend_bool php_aware_stomp_connect(php_aware_stomp_handle *handle,
 		smart_str_0(&headers);
 		
 		if (!php_aware_stomp_send_frame(handle, "CONNECT", &headers, NULL, 1, &response TSRMLS_CC)) {
+			smart_str_free(&headers);
 			php_stream_close(handle->stream);
 			return retval;
 		}
+		smart_str_free(&headers);
 	} else {
 		if (!php_aware_stomp_send_frame(handle, "CONNECT", NULL, NULL, 1, &response TSRMLS_CC)) {
 			php_stream_close(handle->stream);

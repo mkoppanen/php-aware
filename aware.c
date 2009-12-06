@@ -205,6 +205,7 @@ static void _add_assoc_zval_helper(zval *event, char *name, uint name_len)
 /* event must be initialized with MAKE_STD_ZVAL or similar and array_init before sending here */
 void php_aware_capture_error_ex(zval *event, int type, const char *error_filename, const uint error_lineno, zend_bool free_event, const char *format, va_list args)
 {
+	zval **ppzval;
 	va_list args_cp;
 	int len;
 	char *buffer;
@@ -261,6 +262,13 @@ void php_aware_capture_error_ex(zval *event, int type, const char *error_filenam
 		TODO: probably platform dependant atm */
 	uuid_generate(identifier);
 	uuid_unparse(identifier, uuid_str);
+	
+	/*
+		Set the last logged uuid into _SERVER
+	*/
+	if (zend_hash_find(&EG(symbol_table), "_SERVER", sizeof("_SERVER"), (void **) &ppzval) == SUCCESS) {
+		add_assoc_string(*ppzval, "aware_last_uuid", uuid_str, 1);
+	}
 
 	/* Send to backend */
 	php_aware_storage_store_all(uuid_str, event, error_filename, error_lineno TSRMLS_CC);

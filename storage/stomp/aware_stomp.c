@@ -34,9 +34,10 @@ PHP_AWARE_CONNECT_FUNC(stomp)
 	if (!php_aware_stomp_connect(AWARE_STOMP_G(handle), AWARE_STOMP_G(server_uri), 
 									AWARE_STOMP_G(username), AWARE_STOMP_G(password), &err_msg, &err_code)) {
 		
-		if (err_msg)
+		if (err_msg) {
+			php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Unable to connect aware_stomp: %s", err_msg);
 			efree(err_msg);
-		
+		}
 		return AwareOperationFailure;
 	}
 	return AwareOperationSuccess;

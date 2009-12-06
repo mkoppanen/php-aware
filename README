@@ -31,4 +31,4 @@ What does aware monitor?
 
 How can I view the reports?
 
-Use aware_event_get(string mod_name, string uuid) and aware_event_get_list(string mod_name[, int start, int limit])
+Use aware_event_get(string mod_name, string uuid) and aware_event_get_list(string mod_name[, int start, int limit]). At the time of writing there is no GUI available.

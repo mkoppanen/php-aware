@@ -39,10 +39,11 @@ static void php_aware_capture_slow_request(long elapsed, long threshold, const c
 	ALLOC_INIT_ZVAL(slow_request);
 	array_init(slow_request);
 	
-	add_assoc_bool(slow_request, "slow_request", 1);
+	
 	add_assoc_long(slow_request, "time_elapsed", elapsed);
 	add_assoc_long(slow_request, "slow_request_threshold", threshold);	
 	
+	add_assoc_bool(event, "slow_request", 1);
 	add_assoc_zval(event, "_AWARE_REQUEST", slow_request);
 
 	va_start(args, format);
@@ -50,6 +51,8 @@ static void php_aware_capture_slow_request(long elapsed, long threshold, const c
 	va_end(args);
 }
 
+/* {{{ Initializes the slow request monitor
+*/
 zend_bool php_aware_init_slow_request_monitor(struct timeval *request_start)
 {
 	if (!aware_timestamp_get(request_start)) {
@@ -57,6 +60,7 @@ zend_bool php_aware_init_slow_request_monitor(struct timeval *request_start)
 	}
 	return 1;
 }
+/* }}} */
 
 void php_aware_monitor_slow_request(struct timeval *request_start, long threshold) 
 {
@@ -69,12 +73,10 @@ void php_aware_monitor_slow_request(struct timeval *request_start, long threshol
 		elapsed += (long)((tp.tv_usec - request_start->tv_usec) / 1000);
 		
 		if (elapsed > threshold) {
-			php_aware_capture_slow_request(elapsed, threshold, "Slow request detected (elapsed: %d ms, threshold %d ms)", 
-											elapsed, threshold);
+			php_aware_capture_slow_request(elapsed, threshold, "Slow request detected");
 		}
 	}
 }
-
 #endif
 
 /* Capture info about excessive memory usage */
@@ -88,12 +90,12 @@ void php_aware_capture_memory_usage(long peak, long threshold, const char *forma
 	
 	ALLOC_INIT_ZVAL(peak_usage);
 	array_init(peak_usage);
-	
-	add_assoc_bool(peak_usage, "excessive_memory_usage", 1);
+
 	add_assoc_long(peak_usage, "memory_peak_usage", peak);
 	add_assoc_long(peak_usage, "memory_usage_threshold", threshold);	
 	
 	add_assoc_zval(event, "_AWARE_MEMORY", peak_usage);
+	add_assoc_bool(event, "excessive_memory_usage", 1);
 
 	va_start(args, format);
 	php_aware_capture_error_ex(event, E_CORE_WARNING, "aware internal report", 0, 1, format, args);
@@ -105,7 +107,6 @@ void php_aware_monitor_memory_usage(long threshold)
 	long peak = zend_memory_peak_usage(1 TSRMLS_CC);
 
 	if (peak > threshold) {
-		php_aware_capture_memory_usage(peak, threshold, "Excessive memory usage detected (peak %ld bytes, threshold: %ld bytes)",
-										peak, threshold);
+		php_aware_capture_memory_usage(peak, threshold, "Excessive memory usage detected");
 	}
 }
