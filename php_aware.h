@@ -46,6 +46,7 @@ ZEND_BEGIN_MODULE_GLOBALS(aware)
 
 	long log_level;
 	long depth;
+	long memory_usage_threshold;
 	
 	char *storage_modules;
 

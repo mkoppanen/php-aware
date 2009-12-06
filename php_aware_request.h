@@ -16,15 +16,13 @@
    +----------------------------------------------------------------------+
 */
 
-#ifndef _PHP_AWARE_PRIVATE_H_
-# define _PHP_AWARE_PRIVATE_H_
+#ifndef _PHP_AWARE_REQUEST_H_
+# define _PHP_AWARE_REQUEST_H_
 
-#include "php_aware.h"
-#include "php_aware_storage.h"
-#include "php_aware_request.h"
+void php_aware_monitor_memory_usage(long threshold);
 
-void php_aware_capture_error_ex(zval *event, int type, const char *error_filename, const uint error_lineno, zend_bool free_event, const char *format, va_list args);
+zend_bool php_aware_init_slow_request_monitor(struct timeval *request_start);
 
-void php_aware_invoke_handler(int type, const char *error_filename, const uint error_lineno, const char *format, ...);
+void php_aware_monitor_slow_request(struct timeval *request_start, long threshold);
 
 #endif

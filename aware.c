@@ -21,6 +21,7 @@
 #include "Zend/zend_builtin_functions.h"
 #include "main/php_config.h"
 
+
 #ifndef Z_ADDREF_PP
 # define Z_ADDREF_PP(ppz) ppz->refcount++;
 #endif
@@ -286,9 +287,7 @@ void php_aware_invoke_handler(int type, const char *error_filename, const uint e
 /* Wrapper that calls the original callback or our callback */
 void php_aware_capture_error(int type, const char *error_filename, const uint error_lineno, const char *format, va_list args)
 {
-	static errors = 0;
-
-	if ((errors++ < 10) && type & AWARE_G(log_level)) {
+	if (type & AWARE_G(log_level)) {
 		zval *event;
 
 		ALLOC_INIT_ZVAL(event);
@@ -299,29 +298,6 @@ void php_aware_capture_error(int type, const char *error_filename, const uint er
 	} else {
 		AWARE_G(orig_error_cb)(type, error_filename, error_lineno, format, args);	
 	}
-}
-
-/* Wrapper that calls the original callback or our callback */
-void php_aware_capture_slow_request(long elapsed, const char *format, ...)
-{
-	va_list args;
-	zval *event, *slow_request;
-	
-	ALLOC_INIT_ZVAL(event);
-	array_init(event);
-	
-	ALLOC_INIT_ZVAL(slow_request);
-	array_init(slow_request);
-	
-	add_assoc_bool(slow_request, "is_slow_request", 1);
-	add_assoc_long(slow_request, "time_elapsed", elapsed);
-	add_assoc_long(slow_request, "slow_request_threshold", AWARE_G(slow_request_threshold));	
-	
-	add_assoc_zval(event, "_AWARE", slow_request);
-
-	va_start(args, format);
-	php_aware_capture_error_ex(event, E_CORE_WARNING, "aware internal report", 0, 1, format, args);
-	va_end(args);
 }
 
 /* Aware internal errors go through here */
@@ -369,6 +345,7 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_ENTRY("aware.storage_modules",	NULL,		PHP_INI_PERDIR, OnUpdateString,		storage_modules,	zend_aware_globals, aware_globals)
 
 	STD_PHP_INI_ENTRY("aware.slow_request_threshold",	"0",	PHP_INI_PERDIR, OnUpdateLong,	slow_request_threshold,	zend_aware_globals, aware_globals)
+	STD_PHP_INI_ENTRY("aware.memory_usage_threshold",	"0",	PHP_INI_PERDIR, OnUpdateLong,	memory_usage_threshold,	zend_aware_globals, aware_globals)
 PHP_INI_END()
 
 static void php_aware_init_globals(zend_aware_globals *aware_globals)
@@ -394,38 +371,32 @@ static void php_aware_init_globals(zend_aware_globals *aware_globals)
 	aware_globals->user_error_handler = NULL;
 }
 
-#ifdef HAVE_GETTIMEOFDAY
-static zend_bool aware_timestamp_get(struct timeval *tp)
+static void php_aware_rinit_override() 
 {
-	if (gettimeofday(tp, NULL)) {
-		return 0;
-    }
-	return 1;
+	zend_function *orig_set_error_handler, *orig_restore_error_handler;
+	
+	AWARE_G(orig_error_cb) = zend_error_cb;
+	zend_error_cb          =& php_aware_capture_error;
+	
+	if (zend_hash_find(EG(function_table), "set_error_handler", sizeof("set_error_handler"), (void **)&orig_set_error_handler) == SUCCESS) {
+		AWARE_G(orig_set_error_handler) = orig_set_error_handler->internal_function.handler;
+		orig_set_error_handler->internal_function.handler = zif_aware_set_error_handler;
+	}
+	if (zend_hash_find(EG(function_table), "restore_error_handler", sizeof("restore_error_handler"), (void **)&orig_restore_error_handler) == SUCCESS) {
+		AWARE_G(orig_restore_error_handler) = orig_restore_error_handler->internal_function.handler;
+		orig_restore_error_handler->internal_function.handler = zif_aware_restore_error_handler;
+	}
+	zend_ptr_stack_init(&AWARE_G(user_error_handlers));
 }
-#endif
 
 PHP_RINIT_FUNCTION(aware)
 {
 	if (AWARE_G(enabled)) {
-		zend_function *orig_set_error_handler, *orig_restore_error_handler;
-		
-		AWARE_G(orig_error_cb) = zend_error_cb;
-		zend_error_cb          =& php_aware_capture_error;
-		
-		if (zend_hash_find(EG(function_table), "set_error_handler", sizeof("set_error_handler"), (void **)&orig_set_error_handler) == SUCCESS) {
-			AWARE_G(orig_set_error_handler) = orig_set_error_handler->internal_function.handler;
-			orig_set_error_handler->internal_function.handler = zif_aware_set_error_handler;
-		}
-		if (zend_hash_find(EG(function_table), "restore_error_handler", sizeof("restore_error_handler"), (void **)&orig_restore_error_handler) == SUCCESS) {
-			AWARE_G(orig_restore_error_handler) = orig_restore_error_handler->internal_function.handler;
-			orig_restore_error_handler->internal_function.handler = zif_aware_restore_error_handler;
-		}
-		zend_ptr_stack_init(&AWARE_G(user_error_handlers));
+		php_aware_rinit_override();
 
 #ifdef HAVE_GETTIMEOFDAY	
 		if (AWARE_G(slow_request_threshold)) {
-			if (!aware_timestamp_get(&AWARE_G(request_start))) {
-				/* failed to get timestamp */
+			if (!php_aware_init_slow_request_monitor(&AWARE_G(request_start))) {
 				AWARE_G(slow_request_threshold) = 0;
 			}
 		}
@@ -435,43 +406,41 @@ PHP_RINIT_FUNCTION(aware)
 	return SUCCESS;
 }
 
+static void php_aware_rshutdown_restore() 
+{
+	zend_function *orig_set_error_handler, *orig_restore_error_handler;
+	
+	zend_error_cb = AWARE_G(orig_error_cb);
+	zend_ptr_stack_clean(&AWARE_G(user_error_handlers), ZVAL_DESTRUCTOR, 1);
+	zend_ptr_stack_destroy(&AWARE_G(user_error_handlers));
+	
+	if (AWARE_G(user_error_handler)) {
+		zval_dtor(AWARE_G(user_error_handler));
+		FREE_ZVAL(AWARE_G(user_error_handler));
+	}
+	
+	if (zend_hash_find(EG(function_table), "set_error_handler", sizeof("set_error_handler"), (void **)&orig_set_error_handler) == SUCCESS) {
+		orig_set_error_handler->internal_function.handler = AWARE_G(orig_set_error_handler);
+	}
+	if (zend_hash_find(EG(function_table), "restore_error_handler", sizeof("restore_error_handler"), (void **)&orig_restore_error_handler) == SUCCESS) {
+		orig_restore_error_handler->internal_function.handler = AWARE_G(orig_restore_error_handler);
+	}
+}
+
 PHP_RSHUTDOWN_FUNCTION(aware)
 {
 	if (AWARE_G(enabled)) {
-		zend_function *orig_set_error_handler, *orig_restore_error_handler;
-
 #ifdef HAVE_GETTIMEOFDAY	
 		if (AWARE_G(slow_request_threshold)) {
-			struct timeval tp;
-			if (aware_timestamp_get(&tp)) {
-				/* in milliseconds */
-				long elapsed;
-				
-				elapsed  = (long)((tp.tv_sec - AWARE_G(request_start).tv_sec) * 1000);
-				elapsed += (long)((tp.tv_usec - AWARE_G(request_start).tv_usec) / 1000);
-				
-				if (elapsed > AWARE_G(slow_request_threshold)) {
-					php_aware_capture_slow_request(elapsed, "Slow request detected (elapsed: %d ms, threshold %d ms)", 
-													elapsed, AWARE_G(slow_request_threshold));
-				}
-			}
+			php_aware_monitor_slow_request(&AWARE_G(request_start), AWARE_G(slow_request_threshold));
 		}
-#endif		
-		zend_error_cb = AWARE_G(orig_error_cb);
-		zend_ptr_stack_clean(&AWARE_G(user_error_handlers), ZVAL_DESTRUCTOR, 1);
-		zend_ptr_stack_destroy(&AWARE_G(user_error_handlers));
-		
-		if (AWARE_G(user_error_handler)) {
-			zval_dtor(AWARE_G(user_error_handler));
-			FREE_ZVAL(AWARE_G(user_error_handler));
+#endif
+		if (AWARE_G(memory_usage_threshold)) {
+			php_aware_monitor_memory_usage(AWARE_G(memory_usage_threshold));
 		}
 		
-		if (zend_hash_find(EG(function_table), "set_error_handler", sizeof("set_error_handler"), (void **)&orig_set_error_handler) == SUCCESS) {
-			orig_set_error_handler->internal_function.handler = AWARE_G(orig_set_error_handler);
-		}
-		if (zend_hash_find(EG(function_table), "restore_error_handler", sizeof("restore_error_handler"), (void **)&orig_restore_error_handler) == SUCCESS) {
-			orig_restore_error_handler->internal_function.handler = AWARE_G(orig_restore_error_handler);
-		}
+		/* restore error handler */
+		php_aware_rshutdown_restore();
 	}
 	return SUCCESS;
 }

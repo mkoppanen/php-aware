@@ -56,6 +56,7 @@ zend_bool php_aware_stomp_send_frame(php_aware_stomp_handle *handle,
 	}
 	
 	smart_str_appendc(&sendbuf, '\n');
+	smart_str_0(&sendbuf);
 
 	status = (php_stream_write(handle->stream, sendbuf.c, sendbuf.len + 1) == sendbuf.len + 1);
 	smart_str_free(&sendbuf);
@@ -107,6 +108,7 @@ zend_bool php_aware_stomp_connect(php_aware_stomp_handle *handle,
 		smart_str_appends(&headers, "passcode:");
 		smart_str_appends(&headers, password);
 		smart_str_appendc(&headers, '\n');
+		smart_str_0(&headers);
 		
 		if (!php_aware_stomp_send_frame(handle, "CONNECT", &headers, NULL, 1, &response TSRMLS_CC)) {
 			return retval;
@@ -146,6 +148,7 @@ zend_bool php_aware_stomp_send(php_aware_stomp_handle *handle, const char *queue
 	smart_str_appends(&headers, "content-length:");
 	smart_str_append_long(&headers, message_len);
 	smart_str_appendc(&headers, '\n');
+	smart_str_0(&headers);
 	
 	/* Body */
 	smart_str_appendl(&body, message, message_len);
