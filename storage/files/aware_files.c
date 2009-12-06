@@ -41,7 +41,7 @@ PHP_AWARE_GET_FUNC(files)
 	
 	aware_printf("Filename: %s\n", filename);
 	
-	stream = php_stream_open_wrapper(filename, "r", ENFORCE_SAFE_MODE, NULL);
+	stream = php_stream_open_wrapper(filename, "r", ENFORCE_SAFE_MODE & ~REPORT_ERRORS, NULL);
 	efree(filename);
 	
 	if (!stream) {
@@ -73,7 +73,7 @@ PHP_AWARE_STORE_FUNC(files)
 	
 	aware_printf("Storage filename: %s\n", filename);
 	
-	stream = php_stream_open_wrapper(filename, "w+", ENFORCE_SAFE_MODE, NULL);
+	stream = php_stream_open_wrapper(filename, "w+", ENFORCE_SAFE_MODE & ~REPORT_ERRORS, NULL);
 	efree(filename);
 	
 	php_aware_storage_serialize(event, &string TSRMLS_CC);

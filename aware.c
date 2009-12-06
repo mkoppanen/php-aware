@@ -133,7 +133,7 @@ PHP_FUNCTION(aware_set_error_handler)
 				ZVAL_STRING(return_value, Z_STRVAL_P(old_handler), 1);
 			}
 			
-			MAKE_STD_ZVAL(tmp);
+			ALLOC_INIT_ZVAL(tmp);
 			ZVAL_STRING(tmp, Z_STRVAL_P(EG(user_error_handler)), 1);
 
 			/* free previous error handler */
@@ -142,7 +142,7 @@ PHP_FUNCTION(aware_set_error_handler)
 				FREE_ZVAL(AWARE_G(user_error_handler));
 			}
 			
-			MAKE_STD_ZVAL(AWARE_G(user_error_handler));
+			ALLOC_INIT_ZVAL(AWARE_G(user_error_handler));
 			ZVAL_STRING(AWARE_G(user_error_handler), Z_STRVAL_P(EG(user_error_handler)), 1);
 
 			/* Create a new handler */
@@ -184,7 +184,7 @@ PHP_FUNCTION(aware_restore_error_handler)
 					zval_dtor(AWARE_G(user_error_handler));
 					FREE_ZVAL(AWARE_G(user_error_handler));
 				}
-				MAKE_STD_ZVAL(AWARE_G(user_error_handler));
+				ALLOC_INIT_ZVAL(AWARE_G(user_error_handler));
 				ZVAL_STRING(AWARE_G(user_error_handler), Z_STRVAL_P(tmp), 1);
 			}
 		}
@@ -286,7 +286,9 @@ void php_aware_invoke_handler(int type, const char *error_filename, const uint e
 /* Wrapper that calls the original callback or our callback */
 void php_aware_capture_error(int type, const char *error_filename, const uint error_lineno, const char *format, va_list args)
 {
-	if (type & AWARE_G(log_level)) {
+	static errors = 0;
+
+	if ((errors++ < 10) && type & AWARE_G(log_level)) {
 		zval *event;
 
 		ALLOC_INIT_ZVAL(event);
