@@ -19,4 +19,16 @@ So the cycle is a about the following:
       -> loop through all configured backends and pass the information 
         -> the backend (normally) serializes the event and stores based on it's config
     -> call the original error callback 
+
+
+What does aware monitor?
+
+  At the moment following things:
+    - php errors 
+    - slow requests
+    - peak memory usage during request
     
+
+How can I view the reports?
+
+Use aware_event_get(string mod_name, string uuid) and aware_event_get_list(string mod_name[, int start, int limit])
