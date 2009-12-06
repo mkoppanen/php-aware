@@ -1,5 +1,22 @@
-TODO:
+What is aware?
 
-	- add more backends for storing events
-	- Implement get multi on supported backends
-	- Clean up the code here and there
+aware is a PHP monitoring system that supports storing PHP errors (events) into different storage backends. Currently supported backends are files, snmp, tokyo cabinet/tyrant and stomp. The events can be later retrieved from backends that support retrieval.
+
+How does it work?
+
+Roughly: override zend_error_cb, set_error_handler and restore_error_handler with a custom function that takes a copy of the current context and sends the error to the backend. The backend storage is abstracted from away and each backend storage is a separate PHP extension. The backend will receive a zval * containing information about the current error which it usually serializes (TODO: serialize only once) and stores based on it's own configuration. 
+
+Currently it is possible to chain the backends to allow configurations such as store the event to tokyo tyrant and send snmp trap as well.
+
+
+So the cycle is a about the following:
+
+  1. Aware startup
+    -> override zend_error_cb with interceptor and store a pointer to the original callback
+
+  2. PHP error happens 
+    -> engine calls zend_error_cb which brings the error message etc to our callback
+      -> loop through all configured backends and pass the information 
+        -> the backend (normally) serializes the event and stores based on it's config
+    -> call the original error callback 
+    
