@@ -153,6 +153,7 @@ static PHP_INI_MH(OnUpdateBackend)
 PHP_INI_BEGIN()
 	/* Possible values "cabinet", "tyrant" */
 	STD_PHP_INI_ENTRY("aware_tokyo.backend", "", PHP_INI_PERDIR, OnUpdateBackend, backend_str, zend_aware_tokyo_globals, aware_tokyo_globals)
+	
 	/* Tokyo Tyrant config */
 	STD_PHP_INI_ENTRY("aware_tokyo.tyrant_host", "localhost", PHP_INI_PERDIR, OnUpdateString, tyrant_host, zend_aware_tokyo_globals, aware_tokyo_globals)
 	STD_PHP_INI_ENTRY("aware_tokyo.tyrant_port", "1978", PHP_INI_PERDIR, OnUpdateLong, tyrant_port, zend_aware_tokyo_globals, aware_tokyo_globals)
