@@ -26,6 +26,9 @@ php_aware_stomp_handle *php_aware_stomp_init() {
 	php_aware_stomp_handle *handle;
 	
 	handle = malloc(sizeof(php_aware_stomp_handle));
+	
+	if (!handle)
+		return NULL;
 
 	handle->stream		= NULL;
 	handle->connected   = 0;

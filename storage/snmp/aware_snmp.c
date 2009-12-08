@@ -24,12 +24,13 @@ ZEND_DECLARE_MODULE_GLOBALS(aware_snmp)
 static const oid objid_sysuptime[] = { 1, 3, 6, 1, 2, 1, 1, 3, 0 };
 static const oid objid_snmptrap[]  = { 1, 3, 6, 1, 6, 3, 1, 1, 4, 1, 0 };
 
-/* {{{ AwareOperationStatus php_aware_send_snmp_trap(netsnmp_session *sess, char *message, const char *error_filename, long error_lineno TSRMLS_DC) 
+/* {{{ AwareOperationStatus php_aware_send_snmp_trap(netsnmp_session *sess, const char *uuid, const char *message, const char *error_filename, long error_lineno TSRMLS_DC) 
 */
-AwareOperationStatus php_aware_send_snmp_trap(netsnmp_session *sess, char *message, const char *error_filename, long error_lineno TSRMLS_DC) 
+AwareOperationStatus php_aware_send_snmp_trap(netsnmp_session *sess, const char *uuid, const char *message, const char *error_filename, long error_lineno TSRMLS_DC) 
 {
 	size_t oid_len = MAX_OID_LEN;
 	
+	oid objid_uuid[MAX_OID_LEN];
 	oid objid_php_name[MAX_OID_LEN];
 	oid objid_php_message[MAX_OID_LEN];
 	
@@ -58,8 +59,16 @@ AwareOperationStatus php_aware_send_snmp_trap(netsnmp_session *sess, char *messa
 	if (snmp_add_var(pdu, objid_snmptrap, sizeof(objid_snmptrap) / sizeof(oid), 'o', AWARE_SNMP_G(error_msg_oid)) != 0) {
 		return AwareOperationFailure;
 	}
+	
+	/* First parameter is the uuid of the event */
+	if (!snmp_parse_oid(AWARE_SNMP_G(uuid_oid), objid_uuid, &oid_len)) {
+		return AwareOperationFailure;
+	}
+	if (snmp_add_var(pdu, objid_uuid, oid_len, 's', uuid) != 0) {
+		return AwareOperationFailure;
+	}
 
-	/* Create the first param */
+	/* Next filename and line */
 	if (!snmp_parse_oid(AWARE_SNMP_G(name_oid), objid_php_name, &oid_len)) {
 		return AwareOperationFailure;
 	}
@@ -73,7 +82,7 @@ AwareOperationStatus php_aware_send_snmp_trap(netsnmp_session *sess, char *messa
 		return AwareOperationFailure;
 	}
 
-	/* Next argument is error message */
+	/* And error message last */
 	if (!snmp_parse_oid(AWARE_SNMP_G(error_msg_oid), objid_php_message, &oid_len)) {
 		return AwareOperationFailure;
 	}
@@ -159,9 +168,9 @@ PHP_AWARE_STORE_FUNC(snmp)
 {
 	zval **ppzval;
 	if (zend_hash_find(Z_ARRVAL_P(event), "error_message", sizeof("error_message"), (void **) &ppzval) == SUCCESS) {
-		return php_aware_send_snmp_trap(AWARE_SNMP_G(snmp_sess), Z_STRVAL_PP(ppzval), error_filename, error_lineno TSRMLS_CC);
+		return php_aware_send_snmp_trap(AWARE_SNMP_G(snmp_sess), uuid, Z_STRVAL_PP(ppzval), error_filename, error_lineno TSRMLS_CC);
 	} else {
-		return php_aware_send_snmp_trap(AWARE_SNMP_G(snmp_sess), "No error message", error_filename, error_lineno TSRMLS_CC);
+		return php_aware_send_snmp_trap(AWARE_SNMP_G(snmp_sess), uuid, "No error message", error_filename, error_lineno TSRMLS_CC);
 	}
 }
 
@@ -182,7 +191,7 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_ENTRY("aware_snmp.name_oid", NULL,  PHP_INI_PERDIR, OnUpdateString, name_oid, zend_aware_snmp_globals, aware_snmp_globals)
 	STD_PHP_INI_ENTRY("aware_snmp.error_msg_oid", NULL, PHP_INI_PERDIR, OnUpdateString, error_msg_oid, zend_aware_snmp_globals, aware_snmp_globals)
 	STD_PHP_INI_ENTRY("aware_snmp.trap_oid", NULL, PHP_INI_PERDIR, OnUpdateString, trap_oid, zend_aware_snmp_globals, aware_snmp_globals)
-	STD_PHP_INI_ENTRY("aware_snmp.user_msg_oid", NULL, PHP_INI_PERDIR, OnUpdateString, user_msg_oid, zend_aware_snmp_globals, aware_snmp_globals)
+	STD_PHP_INI_ENTRY("aware_snmp.uuid_oid", NULL, PHP_INI_PERDIR, OnUpdateString, uuid_oid, zend_aware_snmp_globals, aware_snmp_globals)
 PHP_INI_END()
 
 static void php_aware_snmp_init_globals(zend_aware_snmp_globals *aware_snmp_globals)
@@ -198,35 +207,41 @@ static void php_aware_snmp_init_globals(zend_aware_snmp_globals *aware_snmp_glob
 	aware_snmp_globals->trap_oid = NULL;
 	aware_snmp_globals->name_oid = NULL;
 	aware_snmp_globals->error_msg_oid = NULL;
+	aware_snmp_globals->uuid_oid = NULL;
 }
 
 static zend_bool php_aware_snmp_check_config(TSRMLS_D)
 {
 	if (!AWARE_SNMP_G(trap_host)) {
 		php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_snmp, missing aware_snmp.trap_host");
-		return FAILURE;
+		return 0;
 	}
 
 	if (!AWARE_SNMP_G(trap_community)) {
 		php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_snmp, missing aware_snmp.trap_community");
-		return FAILURE;
+		return 0;
 	}
 
 	if (!AWARE_SNMP_G(name_oid)) {
 		php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_snmp, missing aware_snmp.name_oid");
-		return FAILURE;
+		return 0;
 	}
 
 	if (!AWARE_SNMP_G(error_msg_oid)) {
 		php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_snmp, missing aware_snmp.error_msg_oid");
-		return FAILURE;
+		return 0;
+	}
+	
+	if (!AWARE_SNMP_G(uuid_oid)) {
+		php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_snmp, missing aware_snmp.uuid_oid");
+		return 0;
 	}
 
 	if (!AWARE_SNMP_G(trap_oid)) {
 		php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_snmp, missing aware_snmp.trap_oid");
-		return FAILURE;
+		return 0;
 	}
-	return SUCCESS;
+	return 1;
 }
 
 /* {{{ PHP_MINIT_FUNCTION(aware_snmp) */
@@ -242,7 +257,8 @@ PHP_MINIT_FUNCTION(aware_snmp)
 	switch (reg_status) 
 	{
 		case AwareModuleRegistered:
-			if (php_aware_snmp_check_config(TSRMLS_C) == FAILURE) {
+			if (!php_aware_snmp_check_config(TSRMLS_C)) {
+				AWARE_SNMP_G(enabled) = 0;
 				return FAILURE;
 			}
 			AWARE_SNMP_G(enabled) = 1;

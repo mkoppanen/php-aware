@@ -110,6 +110,9 @@ PHP_MINIT_FUNCTION(aware_stomp)
 
 			AWARE_STOMP_G(enabled) = 1;
 			AWARE_STOMP_G(handle)  = php_aware_stomp_init();
+			
+			if (!AWARE_STOMP_G(handle))
+				php_aware_original_error_cb(E_ERROR TSRMLS_CC, "Failed to allocate memory");
 		break;
 		
 		case AwareModuleFailed:

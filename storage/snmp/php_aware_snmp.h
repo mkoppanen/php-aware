@@ -44,8 +44,8 @@ ZEND_BEGIN_MODULE_GLOBALS(aware_snmp)
 	char *name_oid;
 	char *error_msg_oid;
 	char *trap_oid;
-	char *user_msg_oid;
-
+	char *uuid_oid;
+	
 	long max_traps;
 	long current_hour;
 	long sent_traps;
