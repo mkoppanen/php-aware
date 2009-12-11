@@ -1,0 +1,30 @@
+1. Get the aware sources
+  
+  git clone git://github.com/mkoppanen/php-aware.git 
+  
+2. Run the build script
+
+  # bash build.sh
+    
+  The build script should compile and install the extensions. 
+  Just comment out the backends you dont need
+  
+3. Configure aware, the following entries to PHP ini should get you started:
+
+  -----
+
+  ; Load the aware core extension
+  extension=aware.so
+  
+  ; Load aware tokyo plugin
+  extension=aware_tokyo.so
+  
+  ; Tokyo Cabinet
+  aware_tokyo.backend="cabinet"
+  aware_tokyo.cabinet_file="/tmp/test.tct"
+
+  -----
+
+This assumes you chose to install the tokyo backend for aware. 
+The gui is currently hardcoded to use the tokyo backend so to 
+test drive things it probably makes sense to enable it. 
