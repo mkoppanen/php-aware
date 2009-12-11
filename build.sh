@@ -4,7 +4,7 @@ if [ "x$1" = "xdebug" ]; then
     CONFIGURE_OPTS="--enable-aware-debug"
 fi
 
-export CFLAGS="-Wall"
+export CFLAGS="-Wall -g"
 export PHP_AUTOCONF="autoconf2.13"
 export PHP_AUTOHEADER="autoheader2.13"
 

@@ -76,7 +76,7 @@ PHP_AWARE_STORE_FUNC(files)
 	stream = php_stream_open_wrapper(filename, "w+", ENFORCE_SAFE_MODE & ~REPORT_ERRORS, NULL);
 	efree(filename);
 	
-	php_aware_storage_serialize(event, &string TSRMLS_CC);
+	php_aware_storage_serialize(uuid, event, &string TSRMLS_CC);
 	
 	if (!stream) {
 		smart_str_free(&string);

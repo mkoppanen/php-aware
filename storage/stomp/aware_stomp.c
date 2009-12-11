@@ -51,7 +51,7 @@ PHP_AWARE_GET_FUNC(stomp)
 PHP_AWARE_STORE_FUNC(stomp)
 {
 	smart_str string = {0};
-	php_aware_storage_serialize(event, &string TSRMLS_CC);
+	php_aware_storage_serialize(uuid, event, &string TSRMLS_CC);
 	
 	if (!php_aware_stomp_send(AWARE_STOMP_G(handle), AWARE_STOMP_G(queue_name), string.c, string.len)) {
 		smart_str_free(&string);

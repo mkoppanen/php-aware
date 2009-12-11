@@ -80,7 +80,7 @@ void php_aware_monitor_slow_request(struct timeval *request_start, long threshol
 #endif
 
 /* Capture info about excessive memory usage */
-void php_aware_capture_memory_usage(long peak, long threshold, const char *format, ...)
+static void php_aware_capture_memory_usage(long peak, long threshold, const char *format, ...)
 {
 	va_list args;
 	zval *event, *peak_usage;
@@ -102,7 +102,7 @@ void php_aware_capture_memory_usage(long peak, long threshold, const char *forma
 	va_end(args);
 }
 
-void php_aware_monitor_memory_usage(long threshold)
+void php_aware_monitor_memory_usage(long threshold TSRMLS_DC)
 {
 	long peak = zend_memory_peak_usage(1 TSRMLS_CC);
 

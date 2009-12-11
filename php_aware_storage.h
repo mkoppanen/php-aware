@@ -68,7 +68,7 @@ void php_aware_storage_get_list(const char *, long , long , zval * TSRMLS_DC);
 void php_aware_storage_store_all(const char *, zval *, const char *, long  TSRMLS_DC);
 
 /* Serialize event */
-zend_bool php_aware_storage_serialize(zval *, smart_str * TSRMLS_DC);
+void php_aware_storage_serialize(const char *uuid, zval *event, smart_str *data_var TSRMLS_DC);
 
 /* Unserialize event */
 zend_bool php_aware_storage_unserialize(const char *, int , zval * TSRMLS_DC);

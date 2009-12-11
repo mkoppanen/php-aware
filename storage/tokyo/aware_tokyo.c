@@ -74,7 +74,7 @@ PHP_AWARE_STORE_FUNC(tokyo)
 	AwareOperationStatus retval = AwareOperationNotSupported;
 	smart_str string = {0};
 	
-	php_aware_storage_serialize(event, &string TSRMLS_CC);
+	php_aware_storage_serialize(uuid, event, &string TSRMLS_CC);
 	
 	if (AWARE_TOKYO_G(backend) == AwareTokyoBackendCabinet) {
 		if (php_aware_cabinet_put(AWARE_TOKYO_G(cabinet), uuid, string.c, string.len)) {

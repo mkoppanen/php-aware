@@ -19,7 +19,7 @@
 #ifndef _PHP_AWARE_REQUEST_H_
 # define _PHP_AWARE_REQUEST_H_
 
-void php_aware_monitor_memory_usage(long threshold);
+void php_aware_monitor_memory_usage(long threshold TSRMLS_DC);
 
 zend_bool php_aware_init_slow_request_monitor(struct timeval *request_start);
 

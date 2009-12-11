@@ -17,14 +17,8 @@
 */
 
 #include "php_aware_private.h"
-#include "ext/standard/php_smart_str.h"
 #include "Zend/zend_builtin_functions.h"
 #include "main/php_config.h"
-
-
-#ifndef Z_ADDREF_PP
-# define Z_ADDREF_PP(ppz) ppz->refcount++;
-#endif
 
 /* TODO: platform dependent */
 #include <uuid/uuid.h>
@@ -266,6 +260,11 @@ void php_aware_capture_error_ex(zval *event, int type, const char *error_filenam
 	/*
 		Set the last logged uuid into _SERVER
 	*/
+	add_assoc_string(event, "aware_event_uuid", uuid_str, 1);
+
+	/*
+		Set the last logged uuid into _SERVER
+	*/
 	if (zend_hash_find(&EG(symbol_table), "_SERVER", sizeof("_SERVER"), (void **) &ppzval) == SUCCESS) {
 		add_assoc_string(*ppzval, "aware_last_uuid", uuid_str, 1);
 	}
@@ -379,6 +378,10 @@ static void php_aware_init_globals(zend_aware_globals *aware_globals)
 	
 	aware_globals->orig_set_error_handler = NULL;
 	aware_globals->user_error_handler = NULL;
+	
+	aware_globals->serialize_cache      = NULL;
+	aware_globals->serialize_cache_len  = 0;
+	aware_globals->serialize_cache_uuid = NULL;
 }
 
 static void php_aware_rinit_override() 
@@ -449,6 +452,11 @@ PHP_RSHUTDOWN_FUNCTION(aware)
 		}
 		/* restore error handler */
 		php_aware_rshutdown_restore();
+		
+		if (AWARE_G(serialize_cache_uuid)) {
+			efree(AWARE_G(serialize_cache_uuid));
+			efree(AWARE_G(serialize_cache));
+		}
 	}
 	return SUCCESS;
 }
@@ -459,9 +467,9 @@ PHP_MINIT_FUNCTION(aware)
 	ZEND_INIT_MODULE_GLOBALS(aware, php_aware_init_globals, NULL); 
 	REGISTER_INI_ENTRIES();
 	
-	if (!AWARE_G(storage_modules))
-		AWARE_G(enabled) = 0;
-	
+	if (!AWARE_G(storage_modules)) {
+		AWARE_G(enabled) = 0;	
+	}
 	return SUCCESS;
 }
 /* }}} */

@@ -27,6 +27,7 @@
 
 #include "php_ini.h"
 #include "ext/standard/info.h"
+#include "ext/standard/php_smart_str.h"
 
 #define PHP_AWARE_EXTVER "0.1.0-dev"
 
@@ -62,6 +63,11 @@ ZEND_BEGIN_MODULE_GLOBALS(aware)
 	
 	long slow_request_threshold;
 	struct timeval request_start;
+	
+	char *serialize_cache;
+	int serialize_cache_len;
+	
+	char *serialize_cache_uuid;
 	
 ZEND_END_MODULE_GLOBALS(aware)
 
