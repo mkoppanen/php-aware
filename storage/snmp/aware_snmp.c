@@ -251,8 +251,8 @@ PHP_MINIT_FUNCTION(aware_snmp)
 	
 	ZEND_INIT_MODULE_GLOBALS(aware_snmp, php_aware_snmp_init_globals, NULL);
 	REGISTER_INI_ENTRIES();
-	
-	reg_status = php_aware_register_storage_module(php_aware_storage_module_snmp_ptr TSRMLS_CC);
+
+    reg_status = PHP_AWARE_STORAGE_REGISTER(snmp);
 	
 	switch (reg_status) 
 	{

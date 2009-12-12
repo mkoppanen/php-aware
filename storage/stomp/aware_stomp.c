@@ -97,7 +97,7 @@ PHP_MINIT_FUNCTION(aware_stomp)
 	ZEND_INIT_MODULE_GLOBALS(aware_stomp, php_aware_stomp_init_globals, NULL);
 	REGISTER_INI_ENTRIES();
 	
-	reg_status = php_aware_register_storage_module(php_aware_storage_module_stomp_ptr TSRMLS_CC);
+	reg_status = PHP_AWARE_STORAGE_REGISTER(stomp);
 	
 	switch (reg_status) 
 	{

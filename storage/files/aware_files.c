@@ -163,7 +163,7 @@ PHP_MINIT_FUNCTION(aware_files)
 	ZEND_INIT_MODULE_GLOBALS(aware_files, php_aware_files_init_globals, NULL);
 	REGISTER_INI_ENTRIES();
 
-	if (php_aware_register_storage_module(php_aware_storage_module_files_ptr TSRMLS_CC) == AwareModuleFailed) {
+	if (PHP_AWARE_STORAGE_REGISTER(files) == AwareModuleFailed) {
 		return FAILURE;
 	} else {
 		return SUCCESS;

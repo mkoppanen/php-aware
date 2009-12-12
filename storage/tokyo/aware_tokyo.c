@@ -249,7 +249,7 @@ PHP_MINIT_FUNCTION(aware_tokyo)
 	ZEND_INIT_MODULE_GLOBALS(aware_tokyo, php_aware_tokyo_init_globals, NULL);
 	REGISTER_INI_ENTRIES();
 	
-	status = php_aware_register_storage_module(php_aware_storage_module_tokyo_ptr TSRMLS_CC);
+	status = PHP_AWARE_STORAGE_REGISTER(tokyo);
 	
 	switch (status) 
 	{

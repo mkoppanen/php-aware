@@ -94,5 +94,8 @@ zend_bool php_aware_storage_unserialize(const char *, int , zval * TSRMLS_DC);
 #define PHP_AWARE_STORAGE_MOD(mod_name) \
 	#mod_name, php_aware_storage_connect_##mod_name, php_aware_storage_get_##mod_name, php_aware_storage_store_##mod_name, \
 	php_aware_storage_get_list_##mod_name, php_aware_storage_disconnect_##mod_name
+	
+#define PHP_AWARE_STORAGE_REGISTER(mod_name) \
+	php_aware_register_storage_module(php_aware_storage_module_##mod_name##_ptr TSRMLS_CC)
 
 #endif
