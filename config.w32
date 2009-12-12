@@ -1,0 +1,7 @@
+ARG_ENABLE("aware", "aware support", "no");
+
+if (PHP_AWARE != "no") {
+  AC_DEFINE('HAVE_AWARE', 1);
+  CHECK_LIB("Rpcrt4.lib", "aware", "C:\\Windows\\system32");
+	EXTENSION('aware', 'aware.c aware_request.c aware_storage.c aware_uuid.c');
+}

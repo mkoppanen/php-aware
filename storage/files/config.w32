@@ -1,0 +1,7 @@
+ARG_ENABLE("aware-files", "aware files support", "no");
+
+if (PHP_AWARE_FILES != "no") {
+
+  AC_DEFINE('HAVE_AWARE_FILES', 1);
+	EXTENSION('aware_files', 'aware_files.c');
+}

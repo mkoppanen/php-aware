@@ -1,0 +1,7 @@
+ARG_ENABLE("aware-stomp", "aware stomp support", "no");
+
+if (PHP_AWARE_STOMP != "no") {
+
+  AC_DEFINE('HAVE_AWARE_STOMP', 1);
+	EXTENSION('aware_stomp', 'aware_stomp.c');
+}
