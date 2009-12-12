@@ -78,6 +78,7 @@ PHP_FUNCTION(aware_event_get_list)
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|ll", &mod_name, &mod_name_len, &start, &limit) != SUCCESS) {
 		return;
 	}
+	
 	php_aware_storage_get_list(mod_name, start, limit, return_value TSRMLS_CC);
 	return;
 }

@@ -87,10 +87,8 @@ zend_bool php_aware_cabinet_get_list(TCTDB *cabinet, long start, long limit, zva
 		return 0;
 	
 	tctdbqrysetorder(query, "timestamp", TDBQONUMDESC);
+	tctdbqrysetlimit(query, limit, start);
 	
-	if (start > 0 || limit > 0)
-		tctdbqrysetlimit(query, limit, start);
-
 	results = tctdbqrysearch(query);
 
 	array_init(return_value);

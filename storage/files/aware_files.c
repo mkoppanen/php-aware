@@ -17,6 +17,7 @@
 */
 
 #include "php_aware_files.h"
+#include "ext/standard/php_filestat.h"
 
 ZEND_DECLARE_MODULE_GLOBALS(aware_files)
 
@@ -114,6 +115,38 @@ static int _php_aware_files_clean_path(zval **path TSRMLS_DC)
 	return ZEND_HASH_APPLY_REMOVE;
 }	
 
+static int php_aware_sort_mtime(const void *a, const void *b TSRMLS_DC) /* {{{ */
+{
+	Bucket *f, *s;
+	zval *first, *second, *stat_f, *stat_s;
+	int result;
+
+	f = *((Bucket **) a);
+	s = *((Bucket **) b);
+	
+	first = *((zval **) f->pData);
+	second = *((zval **) s->pData);
+	
+	convert_to_string(first);
+	convert_to_string(second);
+	
+	MAKE_STD_ZVAL(stat_f);
+	MAKE_STD_ZVAL(stat_s);
+	
+	php_stat(Z_STRVAL_P(first), Z_STRLEN_P(first), FS_MTIME, stat_f TSRMLS_CC);
+	php_stat(Z_STRVAL_P(second), Z_STRLEN_P(second), FS_MTIME, stat_s TSRMLS_CC);
+
+	result = (Z_LVAL_P(stat_f) < Z_LVAL_P(stat_s));
+	
+	zval_dtor(stat_f);
+	FREE_ZVAL(stat_f);
+	
+	zval_dtor(stat_s);
+	FREE_ZVAL(stat_s);
+
+	return result;
+}
+
 PHP_AWARE_GET_LIST_FUNC(files)
 {
 	char path[MAXPATHLEN];
@@ -136,10 +169,45 @@ PHP_AWARE_GET_LIST_FUNC(files)
 	zval_dtor(args[0]);
 	FREE_ZVAL(args[0]);
 	
-	/* TODO: Start + limit */
 	if (Z_TYPE_P(events) == IS_ARRAY) {
+		
+		if (zend_hash_sort(Z_ARRVAL_P(events), zend_qsort, php_aware_sort_mtime, 0 TSRMLS_CC) == FAILURE) {
+			return AwareOperationFailure;
+		}
+		
+		if (zend_hash_num_elements(Z_ARRVAL_P(events)) > limit) {
+			
+			zval *slice_args[3], *events_copy;
+		
+			MAKE_STD_ZVAL(fname);
+			ZVAL_STRING(fname, "array_slice", 1);
+
+			slice_args[0] = events;
+		
+			MAKE_STD_ZVAL(slice_args[1]);
+			ZVAL_LONG(slice_args[1], start);
+		
+			MAKE_STD_ZVAL(slice_args[2]);
+			ZVAL_LONG(slice_args[2], limit);
+		
+			MAKE_STD_ZVAL(events_copy);
+			call_user_function(EG(function_table), NULL, fname, events_copy, 3, slice_args TSRMLS_CC);
+		
+			zval_dtor(fname);
+			FREE_ZVAL(fname);
+
+			zval_dtor(events);
+			ZVAL_ZVAL(events, events_copy, 1, 1);
+
+			zval_dtor(slice_args[1]);
+			FREE_ZVAL(slice_args[1]);
+		
+			zval_dtor(slice_args[2]);
+			FREE_ZVAL(slice_args[2]);
+		}
 		zend_hash_apply(Z_ARRVAL_P(events), (apply_func_t)_php_aware_files_clean_path TSRMLS_CC);
 	}
+	
 	return AwareOperationSuccess;
 }
 

@@ -87,10 +87,8 @@ zend_bool php_aware_tyrant_get_list(TCRDB *tyrant, long start, long limit, zval 
 		return 0;
 	
 	tcrdbqrysetorder(query, "timestamp", TDBQONUMDESC);
+	tcrdbqrysetlimit(query, limit, start);
 	
-	if (start > 0 || limit > 0)
-		tcrdbqrysetlimit(query, limit, start);
-
 	results = tcrdbqrysearch(query);
 
 	array_init(return_value);
