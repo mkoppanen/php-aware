@@ -32,12 +32,12 @@ zend_bool php_aware_stomp_send_frame(php_aware_stomp_handle *handle,
 	const char *command, smart_str *headers, smart_str *body, zend_bool expect_response, smart_str *response TSRMLS_DC);
 
 zend_bool php_aware_stomp_connect(php_aware_stomp_handle *handle, 
-	const char *server_uri, const char *username, const char *password, char **err_msg, int *err_code);
+	const char *server_uri, const char *username, const char *password, char **err_msg, int *err_code TSRMLS_DC);
 
-zend_bool php_aware_stomp_send(php_aware_stomp_handle *handle, const char *queue_name, const char *message, long message_len);
+zend_bool php_aware_stomp_send(php_aware_stomp_handle *handle, const char *queue_name, const char *message, long message_len TSRMLS_DC);
 
-void php_aware_stomp_disconnect(php_aware_stomp_handle *handle);
+void php_aware_stomp_disconnect(php_aware_stomp_handle *handle TSRMLS_DC);
 
-void php_aware_stomp_deinit(php_aware_stomp_handle *handle);
+void php_aware_stomp_deinit(php_aware_stomp_handle *handle TSRMLS_DC);
 
 #endif

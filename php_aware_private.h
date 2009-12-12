@@ -22,10 +22,18 @@
 #include "php_aware.h"
 #include "php_aware_storage.h"
 #include "php_aware_request.h"
+#include "php_aware_uuid.h"
+
+/* for HAVE_GETTIMEOFDAY */
+#ifdef PHP_WIN32
+# include "win32/time.h"
+#else
+# include "main/php_config.h"
+#endif
 
 void php_aware_capture_error_ex(zval *event, int type, const char *error_filename, const uint error_lineno, zend_bool free_event, const char *format, va_list args);
 
-void php_aware_invoke_handler(int type, const char *error_filename, const uint error_lineno, const char *format, ...);
+void php_aware_invoke_handler(int type TSRMLS_DC, const char *error_filename, const uint error_lineno, const char *format, ...);
 
 #ifndef Z_ADDREF_PP
 # define Z_ADDREF_PP(ppz) (*ppz)->refcount++;

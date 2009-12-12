@@ -32,7 +32,7 @@ PHP_AWARE_CONNECT_FUNC(stomp)
 	int err_code;
 
 	if (!php_aware_stomp_connect(AWARE_STOMP_G(handle), AWARE_STOMP_G(server_uri), 
-									AWARE_STOMP_G(username), AWARE_STOMP_G(password), &err_msg, &err_code)) {
+									AWARE_STOMP_G(username), AWARE_STOMP_G(password), &err_msg, &err_code TSRMLS_CC)) {
 		
 		if (err_msg) {
 			php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Unable to connect aware_stomp: %s", err_msg);
@@ -53,7 +53,7 @@ PHP_AWARE_STORE_FUNC(stomp)
 	smart_str string = {0};
 	php_aware_storage_serialize(uuid, event, &string TSRMLS_CC);
 	
-	if (!php_aware_stomp_send(AWARE_STOMP_G(handle), AWARE_STOMP_G(queue_name), string.c, string.len)) {
+	if (!php_aware_stomp_send(AWARE_STOMP_G(handle), AWARE_STOMP_G(queue_name), string.c, string.len TSRMLS_CC)) {
 		smart_str_free(&string);
 		return AwareOperationFailure;
 	}
@@ -68,7 +68,7 @@ PHP_AWARE_GET_LIST_FUNC(stomp)
 
 PHP_AWARE_DISCONNECT_FUNC(stomp)
 {
-	(void) php_aware_stomp_disconnect(AWARE_STOMP_G(handle));
+	(void) php_aware_stomp_disconnect(AWARE_STOMP_G(handle) TSRMLS_CC);
 	return AwareOperationSuccess;
 }
 
@@ -134,7 +134,7 @@ PHP_MSHUTDOWN_FUNCTION(aware_stomp)
 	UNREGISTER_INI_ENTRIES();
 	
 	if (AWARE_STOMP_G(enabled) && AWARE_STOMP_G(handle)) {
-		php_aware_stomp_deinit(AWARE_STOMP_G(handle));
+		php_aware_stomp_deinit(AWARE_STOMP_G(handle) TSRMLS_CC);
 	}
 	
 	return SUCCESS;

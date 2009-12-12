@@ -22,6 +22,8 @@
 #include <tcutil.h>
 #include <tctdb.h>
 
+#include "php_aware_tokyo.h"
+
 TCTDB *php_aware_cabinet_init();
 
 zend_bool php_aware_cabinet_open(TCTDB *cabinet, const char *file_path, int mode);
@@ -30,7 +32,7 @@ zend_bool php_aware_cabinet_optimize(TCTDB *cabinet);
 
 zend_bool php_aware_cabinet_put(TCTDB *cabinet, const char *uuid, const char *event, int event_len);
 
-zend_bool php_aware_cabinet_get(TCTDB *cabinet, const char *uuid, zval *return_value);
+zend_bool php_aware_cabinet_get(TCTDB *cabinet, const char *uuid, zval *return_value TSRMLS_DC);
 
 zend_bool php_aware_cabinet_get_list(TCTDB *cabinet, long start, long limit, zval *return_value);
 

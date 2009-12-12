@@ -29,7 +29,7 @@ if test "$PHP_AWARE" != "no"; then
   PHP_ADD_LIBRARY_WITH_PATH(uuid, "$PHP_AWARE_LIBUUID/lib", AWARE_SHARED_LIBADD)
   PHP_SUBST(AWARE_SHARED_LIBADD)
 
-  PHP_NEW_EXTENSION(aware, aware.c storage.c aware_request.c, $ext_shared)
+  PHP_NEW_EXTENSION(aware, aware.c aware_storage.c aware_request.c aware_uuid.c, $ext_shared)
   PHP_INSTALL_HEADERS([ext/aware], [php_aware.h php_aware_storage.h])
   
 fi

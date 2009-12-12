@@ -25,6 +25,10 @@
 # include "config.h"
 #endif
 
+#ifdef ZTS
+# include "TSRM.h"
+#endif
+
 #include "php_ini.h"
 #include "ext/standard/info.h"
 #include "ext/standard/php_smart_str.h"

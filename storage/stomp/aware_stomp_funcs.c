@@ -87,7 +87,7 @@ zend_bool php_aware_stomp_send_frame(php_aware_stomp_handle *handle,
 }
 
 zend_bool php_aware_stomp_connect(php_aware_stomp_handle *handle, 
-	const char *server_uri, const char *username, const char *password, char **err_msg, int *err_code) 
+	const char *server_uri, const char *username, const char *password, char **err_msg, int *err_code TSRMLS_DC) 
 {
 	struct timeval tv;
 	smart_str headers  = {0};
@@ -138,7 +138,7 @@ zend_bool php_aware_stomp_connect(php_aware_stomp_handle *handle,
 	return retval;
 }
 
-zend_bool php_aware_stomp_send(php_aware_stomp_handle *handle, const char *queue_name, const char *message, long message_len) 
+zend_bool php_aware_stomp_send(php_aware_stomp_handle *handle, const char *queue_name, const char *message, long message_len TSRMLS_DC) 
 {
 	zend_bool retval;
 	smart_str headers = {0};
@@ -169,7 +169,7 @@ zend_bool php_aware_stomp_send(php_aware_stomp_handle *handle, const char *queue
 	return retval;
 }
 
-void php_aware_stomp_disconnect(php_aware_stomp_handle *handle) 
+void php_aware_stomp_disconnect(php_aware_stomp_handle *handle TSRMLS_DC) 
 {
 	if (!handle->connected)
 		return;
@@ -179,10 +179,10 @@ void php_aware_stomp_disconnect(php_aware_stomp_handle *handle)
 	handle->connected = 0;
 }
 
-void php_aware_stomp_deinit(php_aware_stomp_handle *handle) {
+void php_aware_stomp_deinit(php_aware_stomp_handle *handle TSRMLS_DC) {
 
 	if (handle->connected) {
-		php_aware_stomp_disconnect(handle);
+		php_aware_stomp_disconnect(handle TSRMLS_CC);
 	}
 	free(handle);
 }

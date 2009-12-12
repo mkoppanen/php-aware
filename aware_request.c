@@ -18,6 +18,11 @@
 
 #include "php_aware_private.h"
 
+/* gettimeofday */
+#ifdef PHP_WIN32
+# include "win32/php_aware_win32.h"
+#endif
+
 #ifdef HAVE_GETTIMEOFDAY
 static zend_bool aware_timestamp_get(struct timeval *tp)
 {

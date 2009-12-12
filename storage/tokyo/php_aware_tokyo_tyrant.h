@@ -29,7 +29,7 @@ zend_bool php_aware_tyrant_optimize(TCRDB *tyrant);
 
 zend_bool php_aware_tyrant_put(TCRDB *tyrant, const char *uuid, const char *event, int event_len);
 
-zend_bool php_aware_tyrant_get(TCRDB *tyrant, const char *uuid, zval *return_value);
+zend_bool php_aware_tyrant_get(TCRDB *tyrant, const char *uuid, zval *return_value TSRMLS_DC);
 
 zend_bool php_aware_tyrant_get_list(TCRDB *tyrant, long start, long limit, zval *return_value);
 

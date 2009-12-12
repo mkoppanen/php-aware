@@ -18,10 +18,6 @@
 
 #include "php_aware_private.h"
 #include "Zend/zend_builtin_functions.h"
-#include "main/php_config.h"
-
-/* TODO: platform dependent */
-#include <uuid/uuid.h>
 
 ZEND_DECLARE_MODULE_GLOBALS(aware)
 
@@ -186,7 +182,7 @@ PHP_FUNCTION(aware_restore_error_handler)
 	}
 }
 
-static void _add_assoc_zval_helper(zval *event, char *name, uint name_len)
+static void _add_assoc_zval_helper(zval *event, char *name, uint name_len TSRMLS_DC)
 {	
 	zval **ppzval;
 	if (zend_hash_find(&EG(symbol_table), name, name_len, (void **) &ppzval) == SUCCESS) {
@@ -203,35 +199,39 @@ void php_aware_capture_error_ex(zval *event, int type, const char *error_filenam
 	va_list args_cp;
 	int len;
 	char *buffer;
-
-	uuid_t identifier;
-	char uuid_str[37];
+	char uuid_str[PHP_AWARE_UUID_LEN + 1];
 	
 	TSRMLS_FETCH();
+	
+	/* Generate unique identifier */
+	if (!php_aware_generate_uuid(uuid_str)) {
+		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to generate uuid");
+		return;
+	}
 
 	/* Capture superglobals */
 	if (AWARE_G(log_get)) {
-		_add_assoc_zval_helper(event, "_GET", sizeof("_GET"));
+		_add_assoc_zval_helper(event, "_GET", sizeof("_GET") TSRMLS_CC);
 	}
 	
 	if (AWARE_G(log_post)) {
-		_add_assoc_zval_helper(event, "_POST", sizeof("_POST"));
+		_add_assoc_zval_helper(event, "_POST", sizeof("_POST") TSRMLS_CC);
 	}
 	
 	if (AWARE_G(log_cookie)) {
-		_add_assoc_zval_helper(event, "_COOKIE", sizeof("_COOKIE"));
+		_add_assoc_zval_helper(event, "_COOKIE", sizeof("_COOKIE") TSRMLS_CC);
 	}
 	
 	if (AWARE_G(log_session)) {
-		_add_assoc_zval_helper(event, "_SESSION", sizeof("_SESSION"));
+		_add_assoc_zval_helper(event, "_SESSION", sizeof("_SESSION") TSRMLS_CC);
 	}
 	
 	if (AWARE_G(log_server)) {
-		_add_assoc_zval_helper(event, "_SERVER", sizeof("_SERVER"));
+		_add_assoc_zval_helper(event, "_SERVER", sizeof("_SERVER") TSRMLS_CC);
 	}
 	
 	if (AWARE_G(log_env)) {
-		_add_assoc_zval_helper(event, "_ENV", sizeof("_ENV"));
+		_add_assoc_zval_helper(event, "_ENV", sizeof("_ENV") TSRMLS_CC);
 	}
 	
 	/* Capture backtrace */
@@ -251,11 +251,6 @@ void php_aware_capture_error_ex(zval *event, int type, const char *error_filenam
 	
 	add_assoc_long(event, "line_number", error_lineno);
 	add_assoc_long(event, "error_type", type);
-	
-	/* Generate unique identifier 
-		TODO: probably platform dependant atm */
-	uuid_generate(identifier);
-	uuid_unparse(identifier, uuid_str);
 	
 	/*
 		Set the last logged uuid into _SERVER
@@ -278,7 +273,7 @@ void php_aware_capture_error_ex(zval *event, int type, const char *error_filenam
 	}
 }
 
-void php_aware_invoke_handler(int type, const char *error_filename, const uint error_lineno, const char *format, ...)
+void php_aware_invoke_handler(int type TSRMLS_DC, const char *error_filename, const uint error_lineno, const char *format, ...)
 {
 	zval *event;
 	va_list args;
@@ -294,6 +289,8 @@ void php_aware_invoke_handler(int type, const char *error_filename, const uint e
 /* Wrapper that calls the original callback or our callback */
 void php_aware_capture_error(int type, const char *error_filename, const uint error_lineno, const char *format, va_list args)
 {
+	TSRMLS_FETCH();
+	
 	if (type & AWARE_G(log_level)) {
 		zval *event;
 
@@ -393,7 +390,7 @@ static void php_aware_init_globals(zend_aware_globals *aware_globals)
 	aware_globals->serialize_cache_uuid = NULL;
 }
 
-static void php_aware_rinit_override() 
+static void php_aware_rinit_override(TSRMLS_D) 
 {
 	zend_function *orig_set_error_handler, *orig_restore_error_handler;
 	
@@ -414,7 +411,7 @@ static void php_aware_rinit_override()
 PHP_RINIT_FUNCTION(aware)
 {
 	if (AWARE_G(enabled)) {
-		php_aware_rinit_override();
+		php_aware_rinit_override(TSRMLS_C);
 
 #ifdef HAVE_GETTIMEOFDAY	
 		if (AWARE_G(slow_request_threshold)) {
@@ -427,7 +424,7 @@ PHP_RINIT_FUNCTION(aware)
 	return SUCCESS;
 }
 
-static void php_aware_rshutdown_restore() 
+static void php_aware_rshutdown_restore(TSRMLS_D) 
 {
 	zend_function *orig_set_error_handler, *orig_restore_error_handler;
 	
@@ -457,10 +454,10 @@ PHP_RSHUTDOWN_FUNCTION(aware)
 		}
 #endif
 		if (AWARE_G(memory_usage_threshold)) {
-			php_aware_monitor_memory_usage(AWARE_G(memory_usage_threshold));
+			php_aware_monitor_memory_usage(AWARE_G(memory_usage_threshold) TSRMLS_CC);
 		}
 		/* restore error handler */
-		php_aware_rshutdown_restore();
+		php_aware_rshutdown_restore(TSRMLS_C);
 		
 		if (AWARE_G(serialize_cache_uuid)) {
 			efree(AWARE_G(serialize_cache_uuid));

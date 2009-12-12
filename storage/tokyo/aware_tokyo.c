@@ -178,7 +178,7 @@ static void php_aware_tokyo_init_globals(zend_aware_tokyo_globals *aware_tokyo_g
 	aware_tokyo_globals->cabinet_block = 1;
 }
 
-static zend_bool php_aware_tokyo_init_backend(AwareTokyoBackend configured_backend) 
+static zend_bool php_aware_tokyo_init_backend(AwareTokyoBackend configured_backend TSRMLS_DC) 
 {
 	if (configured_backend == AwareTokyoBackendCabinet) {
 		int ecode;
@@ -258,7 +258,7 @@ PHP_MINIT_FUNCTION(aware_tokyo)
 				php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_tokyo, no aware_tokyo.backend defined");
 				return FAILURE;
 			}
-			if (!php_aware_tokyo_init_backend(AWARE_TOKYO_G(backend))) {
+			if (!php_aware_tokyo_init_backend(AWARE_TOKYO_G(backend) TSRMLS_CC)) {
 				php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Failed to initialize the tokyo backend");
 				return FAILURE;
 			}
