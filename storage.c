@@ -105,30 +105,34 @@ php_aware_storage_module *php_aware_find_storage_module(const char *mod_name)
 void php_aware_storage_serialize(const char *uuid, zval *event, smart_str *data_var TSRMLS_DC)
 {
 	php_serialize_data_t var_hash;
-
-	if (AWARE_G(serialize_cache_uuid) && !strcmp(AWARE_G(serialize_cache_uuid), uuid)) {
-		smart_str_appendl(data_var, AWARE_G(serialize_cache), AWARE_G(serialize_cache_len));
-		smart_str_0(data_var);
-		return;
+	
+	if (AWARE_G(use_cache)) {
+		if (AWARE_G(serialize_cache_uuid) && !strcmp(AWARE_G(serialize_cache_uuid), uuid)) {
+			smart_str_appendl(data_var, AWARE_G(serialize_cache), AWARE_G(serialize_cache_len));
+			smart_str_0(data_var);
+			return;
+		}
 	}
 
 	PHP_VAR_SERIALIZE_INIT(var_hash);
 	php_var_serialize(data_var, &event, &var_hash TSRMLS_CC);
     PHP_VAR_SERIALIZE_DESTROY(var_hash);
 
-	if (!AWARE_G(serialize_cache_uuid) || (AWARE_G(serialize_cache_uuid) && strcmp(AWARE_G(serialize_cache_uuid), uuid))) {
+	if (AWARE_G(use_cache)) {
+		if (!AWARE_G(serialize_cache_uuid) || strcmp(AWARE_G(serialize_cache_uuid), uuid)) {
 		
-		if (AWARE_G(serialize_cache_uuid)) {
-			efree(AWARE_G(serialize_cache_uuid));
+    		if (AWARE_G(serialize_cache_uuid)) {
+    			efree(AWARE_G(serialize_cache_uuid));
+    		}
+		
+    		if (AWARE_G(serialize_cache)) {
+    			efree(AWARE_G(serialize_cache));
+    		}
+		
+    		AWARE_G(serialize_cache)      = estrndup(data_var->c, data_var->len);
+    		AWARE_G(serialize_cache_len)  = data_var->len;
+    		AWARE_G(serialize_cache_uuid) = estrdup(uuid);
 		}
-		
-		if (AWARE_G(serialize_cache)) {
-			efree(AWARE_G(serialize_cache));
-		}
-		
-		AWARE_G(serialize_cache)      = estrndup(data_var->c, data_var->len);
-		AWARE_G(serialize_cache_len)  = data_var->len;
-		AWARE_G(serialize_cache_uuid) = estrdup(uuid);
 	}
 }
 

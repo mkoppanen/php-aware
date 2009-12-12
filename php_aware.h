@@ -45,6 +45,8 @@ ZEND_BEGIN_MODULE_GLOBALS(aware)
 	zend_bool log_generated;
 	zend_bool log_backtrace;
 
+	zend_bool use_cache;
+
 	long log_level;
 	long depth;
 	long memory_usage_threshold;

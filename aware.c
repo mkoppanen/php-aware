@@ -339,6 +339,8 @@ static PHP_INI_MH(OnUpdateLogLevel)
 
 PHP_INI_BEGIN()
 	STD_PHP_INI_ENTRY("aware.enabled",			"1",		PHP_INI_PERDIR, OnUpdateBool, 		enabled,			zend_aware_globals, aware_globals)
+	STD_PHP_INI_ENTRY("aware.use_cache",        "0",	    PHP_INI_PERDIR, OnUpdateBool,	    use_cache,      	zend_aware_globals, aware_globals)
+		
 	STD_PHP_INI_ENTRY("aware.error_reporting",	"22519",	PHP_INI_PERDIR, OnUpdateLogLevel,	log_level,			zend_aware_globals, aware_globals)
 	STD_PHP_INI_ENTRY("aware.depth",			"10",		PHP_INI_PERDIR, OnUpdateLong,		depth,				zend_aware_globals, aware_globals)
 	STD_PHP_INI_ENTRY("aware.log_get",			"1",		PHP_INI_PERDIR, OnUpdateBool,		log_get,			zend_aware_globals, aware_globals)
@@ -372,6 +374,8 @@ static void php_aware_init_globals(zend_aware_globals *aware_globals)
 	aware_globals->log_env			= 1;
 	aware_globals->log_backtrace	= 1;
 	aware_globals->log_generated	= 1;
+	
+	aware_globals->use_cache        = 0;
 	
 	aware_globals->slow_request_threshold = 0;
 	aware_globals->memory_usage_threshold = 0;
@@ -503,16 +507,16 @@ static zend_function_entry aware_functions[] = {
 };
 
 zend_module_entry aware_module_entry = {
-        STANDARD_MODULE_HEADER,
-        "aware",
-        aware_functions,
-        PHP_MINIT(aware),
-        PHP_MSHUTDOWN(aware),
-        PHP_RINIT(aware),
-        PHP_RSHUTDOWN(aware),
-        PHP_MINFO(aware),
-    	PHP_AWARE_EXTVER,
-        STANDARD_MODULE_PROPERTIES
+	STANDARD_MODULE_HEADER,
+	"aware",
+	aware_functions,
+	PHP_MINIT(aware),
+	PHP_MSHUTDOWN(aware),
+	PHP_RINIT(aware),
+	PHP_RSHUTDOWN(aware),
+	PHP_MINFO(aware),
+	PHP_AWARE_EXTVER,
+	STANDARD_MODULE_PROPERTIES
 };
 
 #ifdef COMPILE_DL_AWARE
