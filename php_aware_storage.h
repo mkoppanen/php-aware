@@ -51,7 +51,7 @@ typedef struct _php_aware_storage_module {
 } php_aware_storage_module;
 
 /* Register a storage module */
-AwareModuleRegisterStatus php_aware_register_storage_module(php_aware_storage_module * TSRMLS_DC);
+MY_AWARE_EXPORTS AwareModuleRegisterStatus php_aware_register_storage_module(php_aware_storage_module * TSRMLS_DC);
 
 /* Find a storage module */
 php_aware_storage_module *php_aware_find_storage_module(const char *);
@@ -68,10 +68,10 @@ void php_aware_storage_get_list(const char *, long , long , zval * TSRMLS_DC);
 void php_aware_storage_store_all(const char *, zval *, const char *, long  TSRMLS_DC);
 
 /* Serialize event */
-void php_aware_storage_serialize(const char *uuid, zval *event, smart_str *data_var TSRMLS_DC);
+MY_AWARE_EXPORTS void php_aware_storage_serialize(const char *uuid, zval *event, smart_str *data_var TSRMLS_DC);
 
 /* Unserialize event */
-zend_bool php_aware_storage_unserialize(const char *, int , zval * TSRMLS_DC);
+MY_AWARE_EXPORTS zend_bool php_aware_storage_unserialize(const char *, int , zval * TSRMLS_DC);
 
 /* Function declaration macros */
 #define PHP_AWARE_CONNECT_FUNC(mod_name)	AwareOperationStatus php_aware_storage_connect_##mod_name(PHP_AWARE_CONNECT_ARGS)

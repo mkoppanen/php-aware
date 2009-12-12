@@ -62,7 +62,7 @@ static zend_bool php_aware_storage_module_is_configured(const char *mod_name TSR
 	return retval;
 }
 
-AwareModuleRegisterStatus php_aware_register_storage_module(php_aware_storage_module *mod TSRMLS_DC)
+MY_AWARE_EXPORTS AwareModuleRegisterStatus php_aware_register_storage_module(php_aware_storage_module *mod TSRMLS_DC)
 {
 	int i, ret = AwareModuleFailed;
 	
@@ -101,7 +101,7 @@ php_aware_storage_module *php_aware_find_storage_module(const char *mod_name)
 }
 
 /* Serialize to string */
-void php_aware_storage_serialize(const char *uuid, zval *event, smart_str *data_var TSRMLS_DC)
+MY_AWARE_EXPORTS void php_aware_storage_serialize(const char *uuid, zval *event, smart_str *data_var TSRMLS_DC)
 {
 	php_serialize_data_t var_hash;
 	
@@ -135,7 +135,7 @@ void php_aware_storage_serialize(const char *uuid, zval *event, smart_str *data_
 	}
 }
 
-zend_bool php_aware_storage_unserialize(const char *string, int string_len, zval *retval TSRMLS_DC)
+MY_AWARE_EXPORTS zend_bool php_aware_storage_unserialize(const char *string, int string_len, zval *retval TSRMLS_DC)
 {
 	zend_bool unserialized;
 	php_unserialize_data_t var_hash;

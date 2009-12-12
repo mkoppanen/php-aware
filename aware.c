@@ -305,7 +305,7 @@ void php_aware_capture_error(int type, const char *error_filename, const uint er
 }
 
 /* Aware internal errors go through here */
-void php_aware_original_error_cb(int type TSRMLS_DC, const char *format, ...)
+MY_AWARE_EXPORTS void php_aware_original_error_cb(int type TSRMLS_DC, const char *format, ...)
 {
 	char *error_filename;
 	int error_lineno = 0;

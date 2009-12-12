@@ -94,6 +94,17 @@ extern zend_module_entry aware_module_entry;
 #define aware_printf(...)
 #endif
 
-void php_aware_original_error_cb(int type TSRMLS_DC, const char *format, ...);
+/*
+	API exports
+*/
+#ifndef MY_AWARE_EXPORTS
+#  ifdef PHP_WIN32
+#    define MY_AWARE_EXPORTS __declspec(dllexport)
+#  else
+#    define MY_AWARE_EXPORTS PHPAPI
+#  endif
+#endif
+
+MY_AWARE_EXPORTS void php_aware_original_error_cb(int type TSRMLS_DC, const char *format, ...);
 
 #endif

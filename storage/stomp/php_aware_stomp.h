@@ -28,6 +28,10 @@
 # include "config.h"
 #endif
 
+#ifdef ZTS
+# include "TSRM.h"
+#endif
+
 #include <ext/aware/php_aware.h>
 #include <ext/aware/php_aware_storage.h>
 

@@ -4,4 +4,6 @@ if (PHP_AWARE_FILES != "no") {
 
   AC_DEFINE('HAVE_AWARE_FILES', 1);
 	EXTENSION('aware_files', 'aware_files.c');
+	
+	ADD_EXTENSION_DEP('aware_files', 'aware', true);
 }

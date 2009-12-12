@@ -4,4 +4,6 @@ if (PHP_AWARE_STOMP != "no") {
 
   AC_DEFINE('HAVE_AWARE_STOMP', 1);
 	EXTENSION('aware_stomp', 'aware_stomp.c');
+	
+	ADD_EXTENSION_DEP('aware_stomp', 'aware', true);
 }
