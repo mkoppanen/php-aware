@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ "x$1" = "xdebug" ]; then 
-    CONFIGURE_OPTS="--enable-aware-debug --with-php-config=/opt/php_5_3_1_zts/bin/php-config"
+    CONFIGURE_OPTS="--enable-aware-debug"
 fi
 
 export CFLAGS="-Wall -g"
