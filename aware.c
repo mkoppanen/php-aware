@@ -328,9 +328,14 @@ void php_aware_original_error_cb(int type TSRMLS_DC, const char *format, ...)
 }
 
 static PHP_INI_MH(OnUpdateLogLevel) 
-{
+{	
 	if (!new_value) {
+#if PHP_MAJOR_VERSION >= 5 && PHP_MINOR_VERSION >= 3
 		AWARE_G(log_level) = E_ALL & ~E_NOTICE & ~E_STRICT & ~E_DEPRECATED;
+#else 
+		AWARE_G(log_level) = E_ALL & ~E_NOTICE & ~E_STRICT;
+#endif
+
 	} else {
 		AWARE_G(log_level) = atoi(new_value);
 	}
