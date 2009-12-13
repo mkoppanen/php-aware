@@ -256,6 +256,10 @@ void php_aware_capture_error_ex(zval *event, int type, const char *error_filenam
 		_add_assoc_zval_helper(event, "_ENV", sizeof("_ENV") TSRMLS_CC);
 	}
 	
+	if (AWARE_G(log_files)) {
+		_add_assoc_zval_helper(event, "_FILES", sizeof("_FILES") TSRMLS_CC);
+	}
+	
 	/* Capture backtrace */
 	if (AWARE_G(log_backtrace)) {
 		zval *btrace;
@@ -389,6 +393,7 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_ENTRY("aware.log_cookie",		"1",		PHP_INI_PERDIR, OnUpdateBool,		log_cookie,			zend_aware_globals, aware_globals)
 	STD_PHP_INI_ENTRY("aware.log_env",			"1",		PHP_INI_PERDIR, OnUpdateBool,		log_env,			zend_aware_globals, aware_globals)
 	STD_PHP_INI_ENTRY("aware.log_server",		"1",		PHP_INI_PERDIR, OnUpdateBool,		log_server,			zend_aware_globals, aware_globals)
+	STD_PHP_INI_ENTRY("aware.log_files",		"1",		PHP_INI_PERDIR, OnUpdateBool,		log_files,			zend_aware_globals, aware_globals)
 	STD_PHP_INI_ENTRY("aware.log_backtrace",	"1",		PHP_INI_PERDIR, OnUpdateBool,		log_backtrace,		zend_aware_globals, aware_globals)	
 	STD_PHP_INI_ENTRY("aware.log_generated",	"1",		PHP_INI_PERDIR, OnUpdateBool,		log_generated,		zend_aware_globals, aware_globals)
 	STD_PHP_INI_ENTRY("aware.storage_modules",	NULL,		PHP_INI_PERDIR, OnUpdateString,		storage_modules,	zend_aware_globals, aware_globals)
@@ -411,6 +416,7 @@ static void php_aware_init_globals(zend_aware_globals *aware_globals)
 	aware_globals->log_session 		= 1;
 	aware_globals->log_cookie		= 1;
 	aware_globals->log_server		= 1;
+	aware_globals->log_files		= 1;
 	aware_globals->log_env			= 1;
 	aware_globals->log_backtrace	= 1;
 	aware_globals->log_generated	= 1;

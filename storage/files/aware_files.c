@@ -100,14 +100,14 @@ PHP_AWARE_STORE_FUNC(files)
 /* Just the uuid part of the full path */
 static int _php_aware_files_clean_path(zval **path TSRMLS_DC)
 {
-	if (Z_TYPE_PP(path) == IS_STRING && Z_STRLEN_PP(path) > 36) {
-		char *ptr, buffer[37];
-		memset(buffer, 0, 37);
+	if (Z_TYPE_PP(path) == IS_STRING && Z_STRLEN_PP(path) > PHP_AWARE_UUID_LEN) {
+		char *ptr, buffer[PHP_AWARE_UUID_LEN + 1];
+		memset(buffer, 0, PHP_AWARE_UUID_LEN + 1);
 		
 		ptr = Z_STRVAL_PP(path) + (Z_STRLEN_PP(path) - 42);
-		memcpy(buffer, ptr, 36);
+		memcpy(buffer, ptr, PHP_AWARE_UUID_LEN);
 		
-		buffer[36] = '\0';
+		buffer[PHP_AWARE_UUID_LEN] = '\0';
 		efree(Z_STRVAL_PP(path));
 		ZVAL_STRING(*path, buffer, 1);
 		
@@ -226,10 +226,8 @@ PHP_AWARE_DELETE_FUNC(files)
 	
 	status = AwareOperationFailure;
 	
-	if (Z_BVAL_P(stat)) {
-		if (VCWD_UNLINK(path) == SUCCESS) {
-			status = AwareOperationSuccess;
-		}
+	if (Z_BVAL_P(stat) && VCWD_UNLINK(path) == SUCCESS) {
+		status = AwareOperationSuccess;
 	}
 	zval_dtor(stat);
 	FREE_ZVAL(stat);
@@ -253,13 +251,14 @@ static void php_aware_files_init_globals(zend_aware_files_globals *aware_files_g
 /* {{{ PHP_MINIT_FUNCTION(aware_files) */
 PHP_MINIT_FUNCTION(aware_files) 
 {
+	int retval = SUCCESS;
+	
 	ZEND_INIT_MODULE_GLOBALS(aware_files, php_aware_files_init_globals, NULL);
 	REGISTER_INI_ENTRIES();
 
 	if (PHP_AWARE_STORAGE_REGISTER(files) == AwareModuleFailed) {
-		return FAILURE;
+		retval = FAILURE;
 	} else {
-		int retval = SUCCESS;
 		zval *stat;
 		
 		MAKE_STD_ZVAL(stat);
@@ -271,8 +270,8 @@ PHP_MINIT_FUNCTION(aware_files)
 		}
 		zval_dtor(stat);
 		FREE_ZVAL(stat);
-		return retval;
 	}
+	return retval;
 }
 /* }}} */
 

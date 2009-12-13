@@ -22,6 +22,8 @@
 #include "php_aware.h"
 #include "ext/standard/php_smart_str.h"
 
+#define PHP_AWARE_UUID_LEN 36
+
 typedef enum _AwareOperationStatus {
 	AwareOperationFailure,
 	AwareOperationSuccess,

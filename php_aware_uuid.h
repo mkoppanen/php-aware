@@ -19,10 +19,11 @@
 #ifndef _PHP_AWARE_UUID_H_
 # define _PHP_AWARE_UUID_H_
 
-#define PHP_AWARE_UUID_LEN 36
-
 /*
 	User must pass in buffer at least the size of PHP_AWARE_UUID_LEN + 1
+	
+	PHP_AWARE_UUID_LEN is defined in php_aware_storage.h
+	
 */
 zend_bool php_aware_generate_uuid(char *);
 
