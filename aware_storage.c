@@ -162,7 +162,7 @@ void php_aware_storage_store(php_aware_storage_module *mod, const char *uuid, zv
 	}
 
 	if (mod->store(uuid, event, error_filename, error_lineno TSRMLS_CC) == AwareOperationFailure) {
-		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to store the event (%s)", mod->name);
+		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to store the event %s (%s)", uuid, mod->name);
 	}
 
 	if (mod->disconnect(TSRMLS_C) == AwareOperationFailure) {
@@ -200,7 +200,7 @@ void php_aware_storage_get(const char *mod_name, const char *uuid, zval *return_
 	}
 
 	if (mod->get(uuid, return_value TSRMLS_CC) == AwareOperationFailure) {
-		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to get the event (%s)", mod_name);
+		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to get the event %s (%s)", uuid, mod_name);
 	}
 
 	if (mod->disconnect(TSRMLS_C) == AwareOperationFailure) {
@@ -232,4 +232,36 @@ void php_aware_storage_get_list(const char *mod_name, long start, long limit, zv
 	if (mod->disconnect(TSRMLS_C) == AwareOperationFailure) {
 		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to disconnect storage module (%s)", mod->name);
 	}
+}
+
+/* get the event from storage modules */
+zend_bool php_aware_storage_delete(const char *mod_name, const char *uuid TSRMLS_DC) 
+{
+	zend_bool status = 1;
+	
+	php_aware_storage_module *mod;
+	mod = php_aware_find_storage_module(mod_name);
+
+	if (!mod) {
+		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Storage module(%s) does not exist", mod_name);
+		return 0;
+	}
+	
+	/* Connect failed, report error and bail out */
+	if (mod->connect(TSRMLS_C) == AwareOperationFailure) {
+		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to connect the storage module (%s)", mod_name);
+		return 0;
+	}
+	
+	if (mod->delete(uuid TSRMLS_CC) == AwareOperationFailure) {
+		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to delete the event %s (%s)", uuid, mod_name);
+		status = 0;
+	}
+
+	if (mod->disconnect(TSRMLS_C) == AwareOperationFailure) {
+		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to disconnect storage module (%s)", mod->name);
+		status = 0;
+	}
+	
+	return status;
 }

@@ -101,6 +101,11 @@ zend_bool php_aware_tyrant_get_list(TCRDB *tyrant, long start, long limit, zval 
 	return 1;
 }
 
+zend_bool php_aware_tyrant_delete(TCRDB *tyrant, const char *uuid)
+{
+	return tcrdbout2(tyrant, uuid);
+}
+
 zend_bool php_aware_tyrant_close(TCRDB *tyrant) 
 {
 	return (tcrdbclose(tyrant) != 0);

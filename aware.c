@@ -21,6 +21,8 @@
 
 ZEND_DECLARE_MODULE_GLOBALS(aware)
 
+static void php_aware_user_event_trigger(int type TSRMLS_DC, const char *error_filename, const uint error_lineno, const char *format, ...);
+
 /* {{{ aware_event_trigger(int error_level, string message)
 	Trigger an event
 */
@@ -43,7 +45,7 @@ PHP_FUNCTION(aware_event_trigger)
 	error_lineno   = zend_get_executed_lineno(TSRMLS_C);
 	
 	if (type & AWARE_G(log_level)) {
-		php_aware_invoke_handler(type TSRMLS_CC, error_filename, error_lineno, message);
+		php_aware_user_event_trigger(type TSRMLS_CC, error_filename, error_lineno, message);
 		RETURN_TRUE;
 	}
 	RETURN_FALSE;
@@ -81,6 +83,25 @@ PHP_FUNCTION(aware_event_get_list)
 	
 	php_aware_storage_get_list(mod_name, start, limit, return_value TSRMLS_CC);
 	return;
+}
+/* }}} */
+
+/* {{{ aware_event_delete(string module_name, string uuid)
+	Delete the event
+*/
+PHP_FUNCTION(aware_event_delete)
+{
+	char *uuid, *mod_name;
+	int uuid_len, mod_name_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &mod_name, &mod_name_len, &uuid, &uuid_len) != SUCCESS) {
+		return;
+	}
+	
+	if (php_aware_storage_delete(mod_name, uuid TSRMLS_CC) == AwareOperationSuccess) {
+		RETURN_TRUE;
+	}
+	RETURN_FALSE;
 }
 /* }}} */
 
@@ -257,6 +278,7 @@ void php_aware_capture_error_ex(zval *event, int type, const char *error_filenam
 		Set the last logged uuid into _SERVER
 	*/
 	add_assoc_string(event, "aware_event_uuid", uuid_str, 1);
+	add_assoc_long(event, "aware_event_time", time(NULL));
 
 	/*
 		Set the last logged uuid into _SERVER
@@ -272,6 +294,21 @@ void php_aware_capture_error_ex(zval *event, int type, const char *error_filenam
 		zval_dtor(event);
 		FREE_ZVAL(event);
 	}
+}
+
+static void php_aware_user_event_trigger(int type TSRMLS_DC, const char *error_filename, const uint error_lineno, const char *format, ...)
+{
+	zval *event;
+	va_list args;
+
+	ALLOC_INIT_ZVAL(event);
+	array_init(event);
+	
+	add_assoc_bool(event, "aware_event_trigger", 1);
+	
+	va_start(args, format);
+	php_aware_capture_error_ex(event, type, error_filename, error_lineno, 1, format, args);
+	va_end(args);
 }
 
 void php_aware_invoke_handler(int type TSRMLS_DC, const char *error_filename, const uint error_lineno, const char *format, ...)
@@ -505,6 +542,7 @@ static zend_function_entry aware_functions[] = {
 	PHP_FE(aware_event_trigger, NULL)
 	PHP_FE(aware_event_get, NULL)
 	PHP_FE(aware_event_get_list, NULL)
+	PHP_FE(aware_event_delete, NULL)
 	PHP_FE(__aware_error_handler_callback, NULL)
 	{NULL, NULL, NULL}
 };

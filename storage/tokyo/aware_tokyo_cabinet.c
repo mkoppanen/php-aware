@@ -101,6 +101,11 @@ zend_bool php_aware_cabinet_get_list(TCTDB *cabinet, long start, long limit, zva
 	return 1;
 }
 
+zend_bool php_aware_cabinet_delete(TCTDB *cabinet, const char *uuid)
+{
+	return tctdbout2(cabinet, uuid);
+}
+
 zend_bool php_aware_cabinet_close(TCTDB *cabinet) 
 {
 	return (tctdbclose(cabinet) != 0);

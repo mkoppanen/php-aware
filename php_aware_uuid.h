@@ -21,6 +21,9 @@
 
 #define PHP_AWARE_UUID_LEN 36
 
+/*
+	User must pass in buffer at least the size of PHP_AWARE_UUID_LEN + 1
+*/
 zend_bool php_aware_generate_uuid(char *);
 
 #endif

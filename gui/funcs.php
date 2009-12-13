@@ -1,5 +1,24 @@
 <?php
 
+function aware_error_level_to_string($errno)
+{
+    $constants = get_defined_constants(true);
+    $core = $constants['Core'];
+
+    $error_levels = array();
+    
+    foreach ($core as $c => $v) {
+        if (!strncmp($c, "E_", 2)) {
+            $error_levels[$c] = $v;
+        }
+    }
+    if (($level = array_search($errno, $error_levels)) == false) {
+        $level = 'UNKNOWN';
+    }
+    
+    return $level;
+}
+
 function aware_paginate($current_page, $limit = 10) 
 {
 	$str = "";
@@ -11,7 +30,7 @@ function aware_paginate($current_page, $limit = 10)
 	}
 	
 	$start = ($current_page * $limit);
-	$events = aware_event_get_list(STORAGE_MODULE, $start, $limit+$limit);
+	$events = aware_event_get_list(STORAGE_MODULE, $start+$limit, $limit);
 
 	if (count($events)) {
 		$str .= "<a href=?page=" . ($current_page + 1) . ">Next page</a>";
@@ -38,18 +57,24 @@ function aware_event_row($uuid)
 	$host     = htmlentities((isset($event['_SERVER']['HTTP_HOST'])) ? $event['_SERVER']['HTTP_HOST'] : "");
 	
 	$e = $event['error_type'];
-	
-	if ($e & E_CORE_ERROR || $e & E_ERROR || $e & E_PARSE || $e & E_COMPILE_ERROR || $e & E_USER_ERROR) {
-		$bgcolor = "#FFC9C9";
+
+	if (isset($event['aware_event_trigger'])) {
+	    $bgcolor = "#BFFFDF";
 	} else {
-		$bgcolor = "#FCFFCF";
-	}
-	
+    	if ($e & E_CORE_ERROR || $e & E_ERROR || $e & E_PARSE || $e & E_COMPILE_ERROR || $e & E_USER_ERROR) {
+    		$bgcolor = "#FFC9C9";
+    	} else {
+    		$bgcolor = "#FCFFCF";
+    	}
+    }
+    $err_type = aware_error_level_to_string($e);
+    
 	$string = <<< EOF
 	<tr bgcolor="$bgcolor">
 		<td><a href="?action=view&uuid={$uuid}">View</a></td>
 		<td>{$message}</td>
 		<td>{$filename}{$lineno}</td>
+		<td>{$err_type}</td>
 		<td>{$host}</td>
 	</tr>
 EOF;
@@ -78,6 +103,10 @@ function aware_event_details($uuid, $active_col = '')
 			$cell_color = ($active_col === $k) ? "bgcolor='#ddffff'" : "bgcolor='#aacccc'";
 			
 		} else {
+		    
+		    if ($k == 'error_type')
+		        $v = aware_error_level_to_string($v) . " ($v)";
+		    
 			$col_key = $k;
 			$col_val = htmlentities($v);
 			$cell_color = "bgcolor='#aacccc'";

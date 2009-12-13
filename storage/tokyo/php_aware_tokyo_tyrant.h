@@ -33,6 +33,8 @@ zend_bool php_aware_tyrant_get(TCRDB *tyrant, const char *uuid, zval *return_val
 
 zend_bool php_aware_tyrant_get_list(TCRDB *tyrant, long start, long limit, zval *return_value);
 
+zend_bool php_aware_tyrant_delete(TCRDB *tyrant, const char *uuid);
+
 zend_bool php_aware_tyrant_close(TCRDB *tyrant);
 
 void php_aware_tyrant_deinit(TCRDB *tyrant);

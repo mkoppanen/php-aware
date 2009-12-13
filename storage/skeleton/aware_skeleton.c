@@ -44,6 +44,11 @@ PHP_AWARE_GET_LIST_FUNC(skeleton)
 	return AwareOperationNotSupported;
 }
 
+PHP_AWARE_DELETE_FUNC(skeleton)
+{
+	return AwareOperationNotSupported;
+}
+
 PHP_AWARE_DISCONNECT_FUNC(skeleton)
 {
 	return AwareOperationNotSupported;

@@ -66,6 +66,11 @@ PHP_AWARE_GET_LIST_FUNC(stomp)
 	return AwareOperationNotSupported;
 }
 
+PHP_AWARE_DELETE_FUNC(stomp)
+{
+	return AwareOperationNotSupported;
+}
+
 PHP_AWARE_DISCONNECT_FUNC(stomp)
 {
 	(void) php_aware_stomp_disconnect(AWARE_STOMP_G(handle) TSRMLS_CC);

@@ -212,6 +212,30 @@ PHP_AWARE_GET_LIST_FUNC(files)
 	return AwareOperationSuccess;
 }
 
+PHP_AWARE_DELETE_FUNC(files)
+{
+	AwareOperationStatus status;
+	char path[MAXPATHLEN];
+	int path_len;
+	zval *stat;
+
+	path_len = snprintf(path, MAXPATHLEN, "%s/%s.aware", AWARE_FILES_G(storage_path), uuid);
+	
+	MAKE_STD_ZVAL(stat);
+	php_stat(path, path_len, FS_IS_FILE, stat TSRMLS_CC);
+	
+	status = AwareOperationFailure;
+	
+	if (Z_BVAL_P(stat)) {
+		if (VCWD_UNLINK(path) == SUCCESS) {
+			status = AwareOperationSuccess;
+		}
+	}
+	zval_dtor(stat);
+	FREE_ZVAL(stat);
+	return status;
+}
+
 PHP_AWARE_DISCONNECT_FUNC(files)
 {
 	return AwareOperationNotSupported;
@@ -242,7 +266,7 @@ PHP_MINIT_FUNCTION(aware_files)
 		php_stat(AWARE_FILES_G(storage_path), strlen(AWARE_FILES_G(storage_path)), FS_IS_DIR, stat TSRMLS_CC);
 		
 		if (Z_TYPE_P(stat) != IS_BOOL || !Z_BVAL_P(stat)) {
-			php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_files. %s is not dir", AWARE_FILES_G(storage_path));
+			php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_files. %s is not a director", AWARE_FILES_G(storage_path));
 			retval = FAILURE;
 		}
 		zval_dtor(stat);

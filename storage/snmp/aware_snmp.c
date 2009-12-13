@@ -179,6 +179,11 @@ PHP_AWARE_GET_LIST_FUNC(snmp)
 	return AwareOperationNotSupported;
 }
 
+PHP_AWARE_DELETE_FUNC(snmp)
+{
+	return AwareOperationNotSupported;
+}
+
 PHP_AWARE_DISCONNECT_FUNC(snmp)
 {
 	/* Disconnect happens on MSHUTDOWN */

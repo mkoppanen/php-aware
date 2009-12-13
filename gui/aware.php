@@ -1,5 +1,5 @@
 <?php 
-	define("STORAGE_MODULE", "tokyo");
+	define("STORAGE_MODULE", "files");
 	include './funcs.php'; 
 ?>
 <html>
@@ -27,6 +27,7 @@
 				<td width='50'></td>
 				<td>error message</td>
 				<td>filename</td>
+				<td>error</td>
 				<td>host</td>
 			</tr>
 		</thead>

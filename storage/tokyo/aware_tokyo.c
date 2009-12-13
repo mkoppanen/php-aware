@@ -26,7 +26,7 @@ php_aware_storage_module php_aware_storage_module_tokyo = {
 
 PHP_AWARE_CONNECT_FUNC(tokyo)
 {
-	AwareOperationStatus retval = AwareOperationNotSupported;
+	zend_bool status = 0;
 	
 	if (AWARE_TOKYO_G(backend) == AwareTokyoBackendCabinet) {
 		int mode = TDBOWRITER|TDBOCREAT;
@@ -34,103 +34,76 @@ PHP_AWARE_CONNECT_FUNC(tokyo)
 		if (!AWARE_TOKYO_G(cabinet_block)) {
 			mode |= TDBOLCKNB;
 		}
-		if (php_aware_cabinet_open(AWARE_TOKYO_G(cabinet), AWARE_TOKYO_G(cabinet_file), mode)) {
-			retval = AwareOperationSuccess;
-		} else {
-			retval = AwareOperationFailure;
-		}
+		status = php_aware_cabinet_open(AWARE_TOKYO_G(cabinet), AWARE_TOKYO_G(cabinet_file), mode);
 	} else if (AWARE_TOKYO_G(backend) == AwareTokyoBackendTyrant) {
-		if (php_aware_tyrant_open(AWARE_TOKYO_G(tyrant), AWARE_TOKYO_G(tyrant_host), AWARE_TOKYO_G(tyrant_port))) {
-			retval = AwareOperationSuccess;
-		} else {
-			retval = AwareOperationFailure;
-		}
+		status = php_aware_tyrant_open(AWARE_TOKYO_G(tyrant), AWARE_TOKYO_G(tyrant_host), AWARE_TOKYO_G(tyrant_port));
 	}
-	return retval;
+	return (status) ? AwareOperationSuccess : AwareOperationFailure;
 }
 
 PHP_AWARE_GET_FUNC(tokyo)
 {
-	AwareOperationStatus retval = AwareOperationNotSupported;
+	zend_bool status = 0;
 	
 	if (AWARE_TOKYO_G(backend) == AwareTokyoBackendCabinet) {
-		if (php_aware_cabinet_get(AWARE_TOKYO_G(cabinet), uuid, event TSRMLS_CC)) {
-			retval = AwareOperationSuccess;
-		} else {
-			retval = AwareOperationFailure;
-		}
+		status = php_aware_cabinet_get(AWARE_TOKYO_G(cabinet), uuid, event TSRMLS_CC);
 	} else if (AWARE_TOKYO_G(backend) == AwareTokyoBackendTyrant) {
-		if (php_aware_tyrant_get(AWARE_TOKYO_G(tyrant), uuid, event TSRMLS_CC)) {
-			retval = AwareOperationSuccess;
-		} else {
-			retval = AwareOperationFailure;
-		}
+		status = php_aware_tyrant_get(AWARE_TOKYO_G(tyrant), uuid, event TSRMLS_CC);
 	}
-	return retval;
+	return (status) ? AwareOperationSuccess : AwareOperationFailure;
 }
 
 PHP_AWARE_STORE_FUNC(tokyo)
 {
-	AwareOperationStatus retval = AwareOperationNotSupported;
+	zend_bool status = 0;
 	smart_str string = {0};
 	
 	php_aware_storage_serialize(uuid, event, &string TSRMLS_CC);
 	
 	if (AWARE_TOKYO_G(backend) == AwareTokyoBackendCabinet) {
-		if (php_aware_cabinet_put(AWARE_TOKYO_G(cabinet), uuid, string.c, string.len)) {
-			retval = AwareOperationSuccess;
-		} else {
-			retval = AwareOperationFailure;
-		}
+		status = php_aware_cabinet_put(AWARE_TOKYO_G(cabinet), uuid, string.c, string.len);
 	} else if (AWARE_TOKYO_G(backend) == AwareTokyoBackendTyrant) {
-		if (php_aware_tyrant_put(AWARE_TOKYO_G(tyrant), uuid, string.c, string.len)) {
-			retval = AwareOperationSuccess;
-		} else {
-			retval = AwareOperationFailure;
-		}
+		status = php_aware_tyrant_put(AWARE_TOKYO_G(tyrant), uuid, string.c, string.len);
 	}
 	smart_str_free(&string);
-	return retval;
+	return (status) ? AwareOperationSuccess : AwareOperationFailure;
 }
 
 PHP_AWARE_GET_LIST_FUNC(tokyo)
 {
-	AwareOperationStatus retval = AwareOperationNotSupported;
+	zend_bool status = 0;
 	
 	if (AWARE_TOKYO_G(backend) == AwareTokyoBackendCabinet) {
-		if (php_aware_cabinet_get_list(AWARE_TOKYO_G(cabinet), start, limit, events)) {
-			retval = AwareOperationSuccess;
-		} else {
-			retval = AwareOperationFailure;
-		}
+		status = php_aware_cabinet_get_list(AWARE_TOKYO_G(cabinet), start, limit, events);
 	} else if (AWARE_TOKYO_G(backend) == AwareTokyoBackendTyrant) {
-		if (php_aware_tyrant_get_list(AWARE_TOKYO_G(tyrant), start, limit, events)) {
-			retval = AwareOperationSuccess;
-		} else {
-			retval = AwareOperationFailure;
-		}
+		status = php_aware_tyrant_get_list(AWARE_TOKYO_G(tyrant), start, limit, events);
 	}
-	return retval;
+	
+	return (status) ? AwareOperationSuccess : AwareOperationFailure;
+}
+
+PHP_AWARE_DELETE_FUNC(tokyo)
+{
+	zend_bool status = 0;
+	
+	if (AWARE_TOKYO_G(backend) == AwareTokyoBackendCabinet) {
+		status = php_aware_cabinet_delete(AWARE_TOKYO_G(cabinet), uuid);
+	} else if (AWARE_TOKYO_G(backend) == AwareTokyoBackendTyrant) {
+		status = php_aware_tyrant_delete(AWARE_TOKYO_G(tyrant), uuid);
+	}
+	return (status) ? AwareOperationSuccess : AwareOperationFailure;
 }
 
 PHP_AWARE_DISCONNECT_FUNC(tokyo)
 {
-	AwareOperationStatus retval = AwareOperationNotSupported;
+	zend_bool status = 0;
 	
 	if (AWARE_TOKYO_G(backend) == AwareTokyoBackendCabinet) {
-		if (php_aware_cabinet_close(AWARE_TOKYO_G(cabinet))) {
-			retval = AwareOperationSuccess;
-		} else {
-			retval = AwareOperationFailure;
-		}
+		status = php_aware_cabinet_close(AWARE_TOKYO_G(cabinet));
 	} else if (AWARE_TOKYO_G(backend) == AwareTokyoBackendTyrant) {
-		if (php_aware_tyrant_close(AWARE_TOKYO_G(tyrant))) {
-			retval = AwareOperationSuccess;
-		} else {
-			retval = AwareOperationFailure;
-		}
+		status = php_aware_tyrant_close(AWARE_TOKYO_G(tyrant));
 	}
-	return retval;
+	return (status) ? AwareOperationSuccess : AwareOperationFailure;
 }
 
 static PHP_INI_MH(OnUpdateBackend)
