@@ -67,7 +67,7 @@ zend_bool php_aware_tyrant_get(TCRDB *tyrant, const char *uuid, zval *return_val
 		event = tcmapget(cols, "event", strlen("event"), &event_len);
 		
 		if (event) {
-			status = (php_aware_storage_unserialize(event, event_len, return_value TSRMLS_CC) == SUCCESS);
+			status = php_aware_storage_unserialize(event, event_len, return_value TSRMLS_CC);
 		}
 		tcmapdel(cols);
     }

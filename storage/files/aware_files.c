@@ -35,6 +35,7 @@ PHP_AWARE_GET_FUNC(files)
 	char filename[MAXPATHLEN], *buff;
 	php_stream *stream;
 	size_t buff_size;
+	zend_bool status;
 
 	if (snprintf(filename, MAXPATHLEN, "%s/%s.aware", AWARE_FILES_G(storage_path), uuid) <= 0) {
 		return AwareOperationFailure;
@@ -55,9 +56,12 @@ PHP_AWARE_GET_FUNC(files)
 		return AwareOperationFailure;
     }
 
-	php_aware_storage_unserialize(buff, buff_size, event TSRMLS_CC);
+	status = php_aware_storage_unserialize(buff, buff_size, event TSRMLS_CC);
 	efree(buff);
 	
+	if (!status) {
+		return AwareOperationFailure;
+	}
 	return AwareOperationSuccess;
 }
 

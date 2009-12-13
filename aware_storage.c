@@ -147,7 +147,7 @@ MY_AWARE_EXPORTS zend_bool php_aware_storage_unserialize(const char *string, int
 	unserialized = php_var_unserialize(&retval, (const unsigned char **)&p, (const unsigned char *) s + string_len, &var_hash TSRMLS_CC);
 	PHP_VAR_UNSERIALIZE_DESTROY(var_hash);
 	
-	return (unserialized == 0) ? FAILURE : SUCCESS;
+	return unserialized;
 }
 
 /* Sends the event to storage module */
