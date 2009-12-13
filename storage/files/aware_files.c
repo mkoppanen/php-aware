@@ -32,18 +32,17 @@ PHP_AWARE_CONNECT_FUNC(files)
 
 PHP_AWARE_GET_FUNC(files)
 {
-	char *filename, *buff;
+	char filename[MAXPATHLEN], *buff;
 	php_stream *stream;
 	size_t buff_size;
 
-	if (spprintf(&filename, MAXPATHLEN, "%s/%s.aware", AWARE_FILES_G(storage_path), uuid) <= 0) {
+	if (snprintf(filename, MAXPATHLEN, "%s/%s.aware", AWARE_FILES_G(storage_path), uuid) <= 0) {
 		return AwareOperationFailure;
 	}
 	
 	aware_printf("Filename: %s\n", filename);
 	
 	stream = php_stream_open_wrapper(filename, "r", ENFORCE_SAFE_MODE & ~REPORT_ERRORS, NULL);
-	efree(filename);
 	
 	if (!stream) {
 		return AwareOperationFailure;
@@ -64,19 +63,17 @@ PHP_AWARE_GET_FUNC(files)
 
 PHP_AWARE_STORE_FUNC(files)
 {
-	char *filename;
+	char filename[MAXPATHLEN];
 	php_stream *stream;
 	smart_str string = {0};
 
-	if (spprintf(&filename, MAXPATHLEN, "%s/%s.aware", AWARE_FILES_G(storage_path), uuid) <= 0) {
+	if (snprintf(filename, MAXPATHLEN, "%s/%s.aware", AWARE_FILES_G(storage_path), uuid) <= 0) {
 		return AwareOperationFailure;
 	}
 	
 	aware_printf("Storage filename: %s\n", filename);
 	
 	stream = php_stream_open_wrapper(filename, "w+", ENFORCE_SAFE_MODE & ~REPORT_ERRORS, NULL);
-	efree(filename);
-	
 	php_aware_storage_serialize(uuid, event, &string TSRMLS_CC);
 	
 	if (!stream) {
@@ -234,7 +231,19 @@ PHP_MINIT_FUNCTION(aware_files)
 	if (PHP_AWARE_STORAGE_REGISTER(files) == AwareModuleFailed) {
 		return FAILURE;
 	} else {
-		return SUCCESS;
+		int retval = SUCCESS;
+		zval *stat;
+		
+		MAKE_STD_ZVAL(stat);
+		php_stat(AWARE_FILES_G(storage_path), strlen(AWARE_FILES_G(storage_path)), FS_IS_DIR, stat TSRMLS_CC);
+		
+		if (Z_TYPE_P(stat) != IS_BOOL || !Z_BVAL_P(stat)) {
+			php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_files. %s is not dir", AWARE_FILES_G(storage_path));
+			retval = FAILURE;
+		}
+		zval_dtor(stat);
+		FREE_ZVAL(stat);
+		return retval;
 	}
 }
 /* }}} */
