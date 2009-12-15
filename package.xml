@@ -2,19 +2,19 @@
 <package packagerversion="1.4.9" version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
  <name>aware</name>
  <channel>pecl.php.net</channel>
- <summary>Multi-datacentre clustering</summary>
- <description>Multi-datacentre clustering</description>
+ <summary>Aware monitoring extension</summary>
+ <description>Monitors the PHP stack</description>
  <lead>
   <name>Mikko Koppanen</name>
   <user>mkoppanen</user>
   <email>mkoppanen@php.net</email>
   <active>yes</active>
  </lead>
- <date>2009-11-13</date>
+ <date>2009-12-15</date>
  <time>15:33:53</time>
  <version>
-  <release>0.1.7</release>
-  <api>0.1.7</api>
+  <release>0.1.1</release>
+  <api>0.1.1</api>
  </version>
  <stability>
   <release>beta</release>
@@ -40,7 +40,7 @@
    
    <!-- Source files -->
    <file name="aware.c" role="src" />
-   <file name="storage.c" role="src" />
+   <file name="aware_storage.c" role="src" />
    <file name="aware_request.c" role="src" />
 
    <!-- misc files -->
