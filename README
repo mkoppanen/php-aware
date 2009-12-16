@@ -70,20 +70,70 @@ Storage backends
   - email
     Sends an email containing information about the error
     
+    Ini settings:
+      aware_email.to_address | String | Where to send the email
+    
+    
   - files
     Stores the information in files
+    
+    Ini settings:
+      aware_files.storage_path | String | Where to store the events
+    
     
   - snmp
     Sends an snmp trap
     
+    Ini settings:
+      aware_snmp.trap_host | String | hostname:port of the snmptrapd
+      
+      aware_snmp.trap_community | String | snmp community for the trap
+
+      aware_snmp.trap_oid | String | OID for the trap
+
+      aware_snmp.name_oid | String | OID for holding the script name
+
+      aware_snmp.error_msg_oid | String | OID for holding the error message
+
+      aware_snmp.uuid_oid | String | OID for holding the uuid
+    
+    
   - spread
     Sends the event to a spread network
+    
+    Ini settings:
+      aware_spread.spread_name | String | port@hostname format of the spread daemon to connect to
+    
+      aware_spread.group_name | String | In which group to send the message to
+      
+      aware_spread.user_name | String | Username of the sender, must be unique to the machine
     
   - stomp
     Sends the event to stomp message queue
     
+    Ini settings:
+      aware_stomp.server_uri | String | Uri of the server in tcp://hostname:port format
+      
+    	aware_stomp.queue_name | String | Name of the queue to send the message to 
+      
+      aware_stomp.username | String | Username to the queue (optional)
+    	
+    	aware_stomp.password | String | Password to the queue (optional)
+    
+    
   - tokyo
     Stores into tokyo cabinet or tokyo tyrant
+    
+    Ini settings:
+      aware_tokyo.backend | String | Can be 'cabinet' or 'tyrant'
+
+    	aware_tokyo.tyrant_host | String | hostname if tyrant is chosen
+    	
+    	aware_tokyo.tyrant_port | int | port if tyrant is chosen
+
+    	aware_tokyo.cabinet_file | String | location of the cabinet file if cabinet is chosen
+    	
+    	aware_tokyo.cabinet_block | String | Use blocking locks
     
     
     
