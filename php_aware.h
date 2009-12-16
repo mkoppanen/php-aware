@@ -47,10 +47,12 @@ ZEND_BEGIN_MODULE_GLOBALS(aware)
 	zend_bool log_env;
 	zend_bool log_server;
 	zend_bool log_files;
-	zend_bool log_generated;
+	
 	zend_bool log_backtrace;
 
 	zend_bool use_cache;
+	
+	zend_bool enable_event_trigger;
 
 	long log_level;
 	long depth;

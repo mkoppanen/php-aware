@@ -136,3 +136,46 @@ Storage backends
     	
     	aware_tokyo.cabinet_block | String | Use blocking locks
     
+    
+Ini settings
+
+  Core settings
+  
+    aware.enabled | boolean | Is aware enabled (Default: On)
+    
+    aware.use_cache | boolean | Use serialization cache (Default: On)
+		
+    aware.error_reporting | integer | Error reporting level (which events are stored)
+    
+    aware.module_error_reporting | string | Override error reporting on module basis (Format: tokyo=E_ALL,snmp=E_ERROR)
+    
+	  aware.depth | integer | How many levels to serialize
+	  
+    aware.log_get | boolean | Whether to include _GET values in the serialized event
+    
+    aware.log_post | boolean | Whether to include _POST values in the serialized event
+    
+    aware.log_session | boolean | Whether to include _SESSION values in the serialized event
+    
+    aware.log_cookie | boolean | Whether to include _COOKIE values in the serialized event
+    
+    aware.log_env | boolean | Whether to include _ENV values in the serialized event
+    
+    aware.log_server | boolean | Whether to include _SERVER values in the serialized event
+    
+    aware.log_files | boolean | Whether to include _FILES values in the serialized event
+    
+    aware.log_backtrace | boolean | Whether to include backtrace in the serialized event
+    
+    aware.enable_event_trigger | boolean | Whether to log events generated with aware_event_trigger
+    
+    aware.storage_modules | string | List of storage modules to enabled (CSV)
+
+    aware.slow_request_threshold | integer | Setting > 0 activates slow request monitor (milliseconds)
+    
+    aware.memory_usage_threshold | integer | Setting > 0 activates memory usage monitor (bytes)
+  
+  
+    
+    
+    

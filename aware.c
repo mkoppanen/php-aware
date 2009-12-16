@@ -44,7 +44,7 @@ PHP_FUNCTION(aware_event_trigger)
 		return;
 	}
 	
-	if (!AWARE_G(log_generated))
+	if (!AWARE_G(enable_event_trigger))
 		RETURN_FALSE;
 
 	error_filename = zend_get_executed_filename(TSRMLS_C);
@@ -460,7 +460,7 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_ENTRY("aware.log_server",		"1",		PHP_INI_PERDIR, OnUpdateBool,		log_server,			zend_aware_globals, aware_globals)
 	STD_PHP_INI_ENTRY("aware.log_files",		"1",		PHP_INI_PERDIR, OnUpdateBool,		log_files,			zend_aware_globals, aware_globals)
 	STD_PHP_INI_ENTRY("aware.log_backtrace",	"1",		PHP_INI_PERDIR, OnUpdateBool,		log_backtrace,		zend_aware_globals, aware_globals)	
-	STD_PHP_INI_ENTRY("aware.log_generated",	"1",		PHP_INI_PERDIR, OnUpdateBool,		log_generated,		zend_aware_globals, aware_globals)
+	STD_PHP_INI_ENTRY("aware.enable_event_trigger",	"1",		PHP_INI_PERDIR, OnUpdateBool,		enable_event_trigger,		zend_aware_globals, aware_globals)
 	STD_PHP_INI_ENTRY("aware.storage_modules",	NULL,		PHP_INI_PERDIR, OnUpdateString,		storage_modules,	zend_aware_globals, aware_globals)
 
 	STD_PHP_INI_ENTRY("aware.slow_request_threshold",	"0",	PHP_INI_PERDIR, OnUpdateLong,	slow_request_threshold,	zend_aware_globals, aware_globals)
@@ -494,7 +494,7 @@ static void php_aware_init_globals(zend_aware_globals *aware_globals)
 	aware_globals->log_files		= 1;
 	aware_globals->log_env			= 1;
 	aware_globals->log_backtrace	= 1;
-	aware_globals->log_generated	= 1;
+	aware_globals->enable_event_trigger	= 1;
 	
 	aware_globals->use_cache        = 0;
 	
