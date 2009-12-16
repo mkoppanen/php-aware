@@ -35,6 +35,8 @@
 
 #define PHP_AWARE_EXTVER "0.1.0-dev"
 
+#include <sys/resource.h>
+
 /* Original error callback */
 typedef void (*php_aware_orig_error_cb_t)(int, const char *, const uint, const char *, va_list);
 
@@ -71,7 +73,8 @@ ZEND_BEGIN_MODULE_GLOBALS(aware)
 	zval *user_error_handler;
 	
 	long slow_request_threshold;
-	struct timeval request_start;
+	struct timeval request_start_tv;
+	struct rusage  request_start_rusage;
 	
 	char *serialize_cache;
 	int serialize_cache_len;

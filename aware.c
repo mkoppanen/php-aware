@@ -552,7 +552,7 @@ PHP_RINIT_FUNCTION(aware)
 
 #ifdef HAVE_GETTIMEOFDAY	
 		if (AWARE_G(slow_request_threshold)) {
-			if (!php_aware_init_slow_request_monitor(&AWARE_G(request_start))) {
+			if (!php_aware_init_slow_request_monitor(&AWARE_G(request_start_tv), &(AWARE_G(request_start_rusage)))) {
 				AWARE_G(slow_request_threshold) = 0;
 			}
 		}
@@ -587,7 +587,7 @@ PHP_RSHUTDOWN_FUNCTION(aware)
 	if (AWARE_G(enabled)) {
 #ifdef HAVE_GETTIMEOFDAY	
 		if (AWARE_G(slow_request_threshold)) {
-			php_aware_monitor_slow_request(&AWARE_G(request_start), AWARE_G(slow_request_threshold));
+			php_aware_monitor_slow_request(&AWARE_G(request_start_tv), &AWARE_G(request_start_rusage), AWARE_G(slow_request_threshold));
 		}
 #endif
 		if (AWARE_G(memory_usage_threshold)) {

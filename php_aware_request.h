@@ -24,9 +24,9 @@
 void php_aware_monitor_memory_usage(long threshold TSRMLS_DC);
 
 #ifdef HAVE_GETTIMEOFDAY
-zend_bool php_aware_init_slow_request_monitor(struct timeval *request_start);
+zend_bool php_aware_init_slow_request_monitor(struct timeval *, struct rusage *);
 
-void php_aware_monitor_slow_request(struct timeval *request_start, long threshold);
+void php_aware_monitor_slow_request(struct timeval *, struct rusage *, long);
 #endif
 
 #endif

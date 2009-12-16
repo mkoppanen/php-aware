@@ -26,6 +26,7 @@
 #ifdef HAVE_GETTIMEOFDAY
 
 #ifndef timersub
+
 #define timersub(tvp, uvp, vvp) \
 	do { \
 		(vvp)->tv_sec = (tvp)->tv_sec - (uvp)->tv_sec; \
@@ -35,12 +36,15 @@
 			(vvp)->tv_usec += 1000000; \
 		} \
 	} while (0);
-#endif
+	
+#endif /* ifndef timersub */
 
-
+#define timeval_to_msec(_my_tv) ((_my_tv.tv_sec * 1000) +  (_my_tv.tv_usec / 1000))
+	
+#define timeval_to_double(_my_tv) (double)(_my_tv).tv_sec + ((double)(_my_tv).tv_usec / 1000000.0)
 
 /* Capture info about slow request */
-static void php_aware_capture_slow_request(long elapsed, long threshold, const char *format, ...)
+static void php_aware_capture_slow_request(long elapsed, long threshold, double u_time, double s_time, const char *format, ...)
 {
 	va_list args;
 	zval *event, *slow_request;
@@ -54,6 +58,9 @@ static void php_aware_capture_slow_request(long elapsed, long threshold, const c
 	add_assoc_long(slow_request, "time_elapsed", elapsed);
 	add_assoc_long(slow_request, "slow_request_threshold", threshold);	
 	
+	add_assoc_double(slow_request, "rusage_user_time", u_time);
+	add_assoc_double(slow_request, "rusage_system_time", s_time);
+	
 	add_assoc_bool(event, "slow_request", 1);
 	add_assoc_zval(event, "_AWARE_REQUEST", slow_request);
 
@@ -64,16 +71,18 @@ static void php_aware_capture_slow_request(long elapsed, long threshold, const c
 
 /* {{{ Initializes the slow request monitor
 */
-zend_bool php_aware_init_slow_request_monitor(struct timeval *request_start)
+zend_bool php_aware_init_slow_request_monitor(struct timeval *request_start, struct rusage *request_start_rusage)
 {
 	if (gettimeofday(request_start, NULL) == 0) {
-		return 1;
+		if (getrusage(RUSAGE_SELF, request_start_rusage) == 0) {
+			return 1;
+		}
 	}
 	return 0;
 }
 /* }}} */
 
-void php_aware_monitor_slow_request(struct timeval *request_start, long threshold) 
+void php_aware_monitor_slow_request(struct timeval *request_start, struct rusage *request_start_rusage, long threshold) 
 {
 	struct timeval request_end;
 	
@@ -82,10 +91,21 @@ void php_aware_monitor_slow_request(struct timeval *request_start, long threshol
 		long elapsed;
 
 		timersub(&request_end, request_start, &request_diff);
-		elapsed = (request_diff.tv_sec * 1000) +  (request_diff.tv_usec / 1000);
+		elapsed = timeval_to_msec(request_diff); 
 
 		if (elapsed > threshold) {
-			php_aware_capture_slow_request(elapsed, threshold, "Slow request detected");
+			double u_time = 0.0, s_time = 0.0;
+			struct timeval tv_utime, tv_stime;
+			struct rusage request_end_rusage;
+			
+			if (getrusage(RUSAGE_SELF, &request_end_rusage) == 0) {
+				timersub(&request_end_rusage.ru_utime, &(request_start_rusage->ru_utime), &tv_utime);
+				timersub(&request_end_rusage.ru_stime, &(request_start_rusage->ru_stime), &tv_stime);
+
+				u_time = timeval_to_double(tv_utime); 
+				s_time = timeval_to_double(tv_stime); 
+			}
+			php_aware_capture_slow_request(elapsed, threshold, u_time, s_time, "Slow request detected");
 		}
 	}
 }
