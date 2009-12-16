@@ -68,7 +68,7 @@ zend_bool php_aware_init_slow_request_monitor(struct timeval *request_start)
 {
 	if (gettimeofday(request_start, NULL) == 0) {
 		return 1;
-    }
+	}
 	return 0;
 }
 /* }}} */
