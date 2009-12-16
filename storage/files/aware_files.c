@@ -248,30 +248,51 @@ static void php_aware_files_init_globals(zend_aware_files_globals *aware_files_g
 	aware_files_globals->storage_path = NULL;	
 }
 
+static zend_bool php_aware_files_startup_check(TSRMLS_D)
+{
+	zval *stat;
+	zend_bool retval = 1;
+
+	MAKE_STD_ZVAL(stat);
+	php_stat(AWARE_FILES_G(storage_path), strlen(AWARE_FILES_G(storage_path)), FS_IS_DIR, stat TSRMLS_CC);
+
+	if (Z_TYPE_P(stat) != IS_BOOL || !Z_BVAL_P(stat)) {
+		php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_files. %s is not a directory", AWARE_FILES_G(storage_path));
+		retval = 0;
+	}
+	zval_dtor(stat);
+	FREE_ZVAL(stat);
+	
+	return retval;
+}
+
 /* {{{ PHP_MINIT_FUNCTION(aware_files) */
 PHP_MINIT_FUNCTION(aware_files) 
 {
-	int retval = SUCCESS;
-	
+	AwareModuleRegisterStatus reg_status;
 	ZEND_INIT_MODULE_GLOBALS(aware_files, php_aware_files_init_globals, NULL);
 	REGISTER_INI_ENTRIES();
+	
+	reg_status = PHP_AWARE_STORAGE_REGISTER(files);
 
-	if (PHP_AWARE_STORAGE_REGISTER(files) == AwareModuleFailed) {
-		retval = FAILURE;
-	} else {
-		zval *stat;
-		
-		MAKE_STD_ZVAL(stat);
-		php_stat(AWARE_FILES_G(storage_path), strlen(AWARE_FILES_G(storage_path)), FS_IS_DIR, stat TSRMLS_CC);
-		
-		if (Z_TYPE_P(stat) != IS_BOOL || !Z_BVAL_P(stat)) {
-			php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_files. %s is not a directory", AWARE_FILES_G(storage_path));
-			retval = FAILURE;
-		}
-		zval_dtor(stat);
-		FREE_ZVAL(stat);
+	switch (reg_status) 
+	{
+		case AwareModuleRegistered:
+			if (!php_aware_files_startup_check(TSRMLS_C)) {
+				return FAILURE;
+			}
+		break;
+
+		case AwareModuleFailed:
+			return FAILURE;
+		break;
+
+		case AwareModuleNotConfigured:
+		break;
 	}
-	return retval;
+
+	return SUCCESS;
+
 }
 /* }}} */
 

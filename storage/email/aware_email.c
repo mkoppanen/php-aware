@@ -19,6 +19,7 @@
 #include "php_aware_email.h"
 
 #include "main/php_output.h"
+#include "ext/standard/php_var.h"
 
 ZEND_DECLARE_MODULE_GLOBALS(aware_email)
 
@@ -39,15 +40,13 @@ PHP_AWARE_GET_FUNC(email)
 PHP_AWARE_STORE_FUNC(email)
 {
 	zval *fname, *args[3], *retval, **ppzval;
-	char *buffer;
-	int buffer_len;
 
 	/*
 		Error body
 	*/
 	MAKE_STD_ZVAL(args[2]);
 	php_start_ob_buffer(NULL, 4096, 0 TSRMLS_CC);
-	php_var_dump(&event, AWARE_G(depth), 0 TSRMLS_CC);
+	php_var_dump(&event, AWARE_G(depth) TSRMLS_CC);
 
 	if (php_ob_get_buffer(args[2] TSRMLS_CC) == FAILURE) {
 		zval_dtor(args[2]);
@@ -132,15 +131,25 @@ PHP_MINIT_FUNCTION(aware_email)
 	ZEND_INIT_MODULE_GLOBALS(aware_email, php_aware_email_init_globals, NULL);
 	REGISTER_INI_ENTRIES();
 	
-	if (PHP_AWARE_STORAGE_REGISTER(email) == AwareModuleFailed) {
-		return FAILURE;
+	reg_status = PHP_AWARE_STORAGE_REGISTER(email);
+	
+	switch (reg_status) 
+	{
+		case AwareModuleRegistered:
+			if (!AWARE_EMAIL_G(to_address)) {
+				php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_email, missing aware_email.to_address");
+				return FAILURE;
+			}
+		break;
+		
+		case AwareModuleFailed:
+			return FAILURE;
+		break;
+		
+		case AwareModuleNotConfigured:
+		break;
 	}
 	
-	if (!AWARE_EMAIL_G(to_address)) {
-		php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_email, missing aware_email.to_address");
-		return FAILURE;
-	}
-
 	return SUCCESS;
 }
 /* }}} */
