@@ -32,3 +32,10 @@ What does aware monitor?
 How can I view the reports?
 
 Use aware_event_get(string mod_name, string uuid) and aware_event_get_list(string mod_name[, int start, int limit]). At the time of writing there is no GUI available.
+
+
+Spread backend
+
+This product uses software developed by Spread Concepts LLC for use in the Spread toolkit. 
+For more information about Spread see http://www.spread.org
+

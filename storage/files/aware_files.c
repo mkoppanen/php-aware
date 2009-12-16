@@ -78,12 +78,12 @@ PHP_AWARE_STORE_FUNC(files)
 	aware_printf("Storage filename: %s\n", filename);
 	
 	stream = php_stream_open_wrapper(filename, "w+", ENFORCE_SAFE_MODE & ~REPORT_ERRORS, NULL);
-	php_aware_storage_serialize(uuid, event, &string TSRMLS_CC);
 	
 	if (!stream) {
-		smart_str_free(&string);
 		return AwareOperationFailure;
 	}
+	
+	php_aware_storage_serialize(uuid, event, &string TSRMLS_CC);
 	
 	if (php_stream_write(stream, string.c, string.len) < string.len) {
 		php_stream_close(stream);
