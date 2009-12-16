@@ -7,6 +7,9 @@ extension=aware_files.so
 ; Load aware snmp plugin
 extension=aware_snmp.so
 
+; Load aware tokyo plugin
+extension=aware_tokyo.so
+
 ; Configure where the events will be send to
 ; The events are sent to all configured backends in this order 
 aware.storage_modules="files,snmp,tokyo"
