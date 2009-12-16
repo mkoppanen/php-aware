@@ -34,10 +34,29 @@ What does aware monitor?
     - peak memory usage during request
     
 
-How can I view the reports?
+Available functions:
 
-Use aware_event_get(string mod_name, string uuid) and aware_event_get_list(string mod_name[, int start, int limit]). 
-There is a very simple GUI available in gui/ directory.
+  aware_event_trigger(int error_level, string message)
+
+    Trigger an event. The event gets sent into configured storage modules but the internal
+    error handler is not invoked
+
+  aware_event_get(string mod_name, string uuid)
+
+    Get event from storage module.
+
+  aware_event_get_list(string mod_name[, int start, int limit])
+  
+    Get list of events from storage module
+  
+  aware_event_delete(string mod_name, string uuid)
+
+    Delete event from storage module
+
+
+GUI
+
+There is a very simple GUI available in gui/ directory. It needs a lot of work.
 
 
 Spread backend
