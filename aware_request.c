@@ -24,13 +24,20 @@
 #endif
 
 #ifdef HAVE_GETTIMEOFDAY
-static zend_bool aware_timestamp_get(struct timeval *tp)
-{
-	if (gettimeofday(tp, NULL)) {
-		return 0;
-    }
-	return 1;
-}
+
+#ifndef timersub
+#define timersub(tvp, uvp, vvp) \
+	do { \
+		(vvp)->tv_sec = (tvp)->tv_sec - (uvp)->tv_sec; \
+		(vvp)->tv_usec = (tvp)->tv_usec - (uvp)->tv_usec; \
+		if ((vvp)->tv_usec < 0) { \
+			(vvp)->tv_sec--; \
+			(vvp)->tv_usec += 1000000; \
+		} \
+	} while (0);
+#endif
+
+
 
 /* Capture info about slow request */
 static void php_aware_capture_slow_request(long elapsed, long threshold, const char *format, ...)
@@ -43,7 +50,6 @@ static void php_aware_capture_slow_request(long elapsed, long threshold, const c
 	
 	ALLOC_INIT_ZVAL(slow_request);
 	array_init(slow_request);
-	
 	
 	add_assoc_long(slow_request, "time_elapsed", elapsed);
 	add_assoc_long(slow_request, "slow_request_threshold", threshold);	
@@ -60,23 +66,24 @@ static void php_aware_capture_slow_request(long elapsed, long threshold, const c
 */
 zend_bool php_aware_init_slow_request_monitor(struct timeval *request_start)
 {
-	if (!aware_timestamp_get(request_start)) {
-		return 0;
-	}
-	return 1;
+	if (gettimeofday(request_start, NULL) == 0) {
+		return 1;
+    }
+	return 0;
 }
 /* }}} */
 
 void php_aware_monitor_slow_request(struct timeval *request_start, long threshold) 
 {
-	struct timeval tp;
-	if (aware_timestamp_get(&tp)) {
-		/* in milliseconds */
+	struct timeval request_end;
+	
+	if (gettimeofday(&request_end, NULL) == 0) {
+		struct timeval request_diff;
 		long elapsed;
-		
-		elapsed  = (long)((tp.tv_sec - request_start->tv_sec) * 1000);
-		elapsed += (long)((tp.tv_usec - request_start->tv_usec) / 1000);
-		
+
+		timersub(&request_end, request_start, &request_diff);
+		elapsed = (request_diff.tv_sec * 1000) +  (request_diff.tv_usec / 1000);
+
 		if (elapsed > threshold) {
 			php_aware_capture_slow_request(elapsed, threshold, "Slow request detected");
 		}
