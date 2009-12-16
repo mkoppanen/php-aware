@@ -143,8 +143,6 @@ PHP_MSHUTDOWN_FUNCTION(aware_spread)
 		SP_disconnect(AWARE_SPREAD_G(spread_mailbox));
 		AWARE_SPREAD_G(connected) = 0;
 	}
-	
-	
 	return SUCCESS;
 }
 

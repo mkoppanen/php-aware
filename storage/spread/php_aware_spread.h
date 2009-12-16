@@ -35,7 +35,7 @@
 #include <ext/aware/php_aware.h>
 #include <ext/aware/php_aware_storage.h>
 
-#include "sp.h"
+#include <sp.h>
 
 ZEND_BEGIN_MODULE_GLOBALS(aware_spread)
 	
