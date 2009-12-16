@@ -38,24 +38,24 @@ Available functions:
 
   aware_event_trigger(int error_level, string message)
 
-    Trigger an event. The event gets sent into configured storage modules but the internal
+    Trigger an event. The event gets sent into configured storage backends but the internal
     error handler is not invoked
 
   aware_event_get(string mod_name, string uuid)
 
-    Get event from storage module.
+    Get event from storage backend module.
 
   aware_event_get_list(string mod_name[, int start, int limit])
   
-    Get list of events from storage module
+    Get list of events from storage backend module
   
   aware_event_delete(string mod_name, string uuid)
 
-    Delete event from storage module
+    Delete event from storage backend module
     
   aware_storage_module_list()
   
-    Returns a list of currently configured storage modules
+    Returns a list of currently configured storage backend modules
 
 
 GUI
@@ -119,11 +119,11 @@ Storage backends
     Ini settings:
       aware_stomp.server_uri | String | Uri of the server in tcp://hostname:port format
       
-    	aware_stomp.queue_name | String | Name of the queue to send the message to 
+      aware_stomp.queue_name | String | Name of the queue to send the message to 
       
       aware_stomp.username | String | Username to the queue (optional)
-    	
-    	aware_stomp.password | String | Password to the queue (optional)
+
+      aware_stomp.password | String | Password to the queue (optional)
     
     
   - tokyo
@@ -132,13 +132,13 @@ Storage backends
     Ini settings:
       aware_tokyo.backend | String | Can be 'cabinet' or 'tyrant'
 
-    	aware_tokyo.tyrant_host | String | hostname if tyrant is chosen
+      aware_tokyo.tyrant_host | String | hostname if tyrant is chosen
     	
-    	aware_tokyo.tyrant_port | int | port if tyrant is chosen
+      aware_tokyo.tyrant_port | int | port if tyrant is chosen
 
-    	aware_tokyo.cabinet_file | String | location of the cabinet file if cabinet is chosen
+      aware_tokyo.cabinet_file | String | location of the cabinet file if cabinet is chosen
     	
-    	aware_tokyo.cabinet_block | String | Use blocking locks
+      aware_tokyo.cabinet_block | String | Use blocking locks
     
     
 Ini settings
@@ -151,9 +151,10 @@ Ini settings
 		
     aware.error_reporting | integer | Error reporting level (which events are stored)
     
-    aware.module_error_reporting | string | Override error reporting on module basis (Format: tokyo=E_ALL,snmp=E_ERROR)
+    aware.module_error_reporting | string | Override error reporting on backend module basis 
+                                            (Format: tokyo=E_ALL,snmp=E_ERROR)
     
-	  aware.depth | integer | How many levels to serialize
+    aware.depth | integer | How many levels to serialize
 	  
     aware.log_get | boolean | Whether to include _GET values in the serialized event
     
@@ -173,7 +174,7 @@ Ini settings
     
     aware.enable_event_trigger | boolean | Whether to log events generated with aware_event_trigger
     
-    aware.storage_modules | string | List of storage modules to enabled (CSV)
+    aware.storage_modules | string | List of storage backend modules to enabled (CSV)
 
     aware.slow_request_threshold | integer | Setting > 0 activates slow request monitor (milliseconds)
     
