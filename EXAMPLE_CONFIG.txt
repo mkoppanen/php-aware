@@ -31,6 +31,10 @@ aware_snmp.error_msg_oid="1.3.6.1.4.1.NNNN.4"
 aware_tokyo.backend="cabinet"
 aware_tokyo.cabinet_file="/tmp/test.tct"
 
+; Override email reporting to only send on certain errors
+aware.module_error_reporting='email=E_ERROR|E_WARNING'
+
+
 Running tests 
 
 export TEST_PHP_ARGS='-n -daware.enabled=1' && make test

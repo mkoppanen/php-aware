@@ -61,7 +61,7 @@ MY_AWARE_EXPORTS AwareModuleRegisterStatus php_aware_register_storage_module(php
 php_aware_storage_module *php_aware_find_storage_module(const char *);
 
 /* Send the event, takes care of reading configured modules and propagates the event */
-void php_aware_storage_store(php_aware_storage_module *, const char *, zval *, const char *, long TSRMLS_DC);
+void php_aware_storage_store(php_aware_storage_module *, const char *, zval *, long, const char *, long TSRMLS_DC);
 
 /* Get from storage */
 void php_aware_storage_get(const char *, const char *, zval * TSRMLS_DC);
@@ -69,7 +69,7 @@ void php_aware_storage_get(const char *, const char *, zval * TSRMLS_DC);
 /* Get list of events */
 void php_aware_storage_get_list(const char *, long , long , zval * TSRMLS_DC);
 
-void php_aware_storage_store_all(const char *, zval *, const char *, long  TSRMLS_DC);
+void php_aware_storage_store_all(const char *, zval *, long, const char *, long  TSRMLS_DC);
 
 zend_bool php_aware_storage_delete(const char *mod_name, const char *uuid TSRMLS_DC);
 

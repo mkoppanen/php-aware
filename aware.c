@@ -18,6 +18,12 @@
 
 #include "php_aware_private.h"
 #include "Zend/zend_builtin_functions.h"
+#include "ext/standard/php_string.h"
+
+#include "zend.h"
+#include "zend_ini_scanner.h"
+#include "zend_language_scanner.h"
+#include <zend_language_parser.h>
 
 ZEND_DECLARE_MODULE_GLOBALS(aware)
 
@@ -292,7 +298,7 @@ void php_aware_capture_error_ex(zval *event, int type, const char *error_filenam
 	}
 
 	/* Send to backend */
-	php_aware_storage_store_all(uuid_str, event, error_filename, error_lineno TSRMLS_CC);
+	php_aware_storage_store_all(uuid_str, event, type, error_filename, error_lineno TSRMLS_CC);
 	
 	if (free_event) {
 		zval_dtor(event);
@@ -374,18 +380,77 @@ static PHP_INI_MH(OnUpdateLogLevel)
 #else 
 		AWARE_G(log_level) = E_ALL & ~E_NOTICE & ~E_STRICT;
 #endif
-
 	} else {
 		AWARE_G(log_level) = atoi(new_value);
 	}
 	return SUCCESS;
 }
 
+void php_aware_ini_parser_cb(zval *arg1, zval *arg2, zval *arg3, int callback_type, void *arg TSRMLS_DC)
+{
+	char *mod_name;
+	long *level;
+	
+	if (!arg2) {
+		return;
+	}
+	
+	mod_name = Z_STRVAL_P(arg1);
+	level    = malloc(sizeof(long));
+	*level   = atol(Z_STRVAL_P(arg2));
+
+	if (zend_hash_update(&AWARE_G(module_error_reporting), mod_name, strlen(mod_name) + 1, &level, sizeof(long), NULL) == FAILURE) {
+		free(level);
+	}
+}
+
+static PHP_INI_MH(OnUpdateModuleErrorReporting) 
+{	
+	int retval = SUCCESS;
+	char *pch, *copy, *tok_buf;
+	
+	zend_hash_clean(&AWARE_G(module_error_reporting));
+	
+	if (!new_value || new_value_length == 0) {
+		return retval;
+	}
+	
+	/* Module error reporting is in format: mod_name=E_ALL,another_mod=E_WARNING */
+	copy = estrdup(new_value);
+	pch  = php_strtok_r(copy, ",", &tok_buf);
+	
+	while (pch != NULL) {
+		char *buffer;
+		int pch_len;
+	
+		pch_len = strlen(pch);
+
+		/* Allocate a buffer */
+		buffer = emalloc(pch_len + ZEND_MMAP_AHEAD);
+		memset(buffer, 0, ZEND_MMAP_AHEAD);
+		memcpy(buffer, pch, pch_len);
+		
+		if (zend_parse_ini_string(buffer, 0, ZEND_INI_SCANNER_NORMAL, php_aware_ini_parser_cb, NULL TSRMLS_CC) == FAILURE) {
+			efree(buffer);
+			retval = FAILURE;
+			break;
+		}
+		
+		efree(buffer);
+		pch = php_strtok_r(NULL, ",", &tok_buf);
+	}
+	efree(copy);
+	return retval;
+}
+
 PHP_INI_BEGIN()
 	STD_PHP_INI_ENTRY("aware.enabled",			"1",		PHP_INI_PERDIR, OnUpdateBool, 		enabled,			zend_aware_globals, aware_globals)
 	STD_PHP_INI_ENTRY("aware.use_cache",        "0",	    PHP_INI_PERDIR, OnUpdateBool,	    use_cache,      	zend_aware_globals, aware_globals)
 		
-	STD_PHP_INI_ENTRY("aware.error_reporting",	"22519",	PHP_INI_PERDIR, OnUpdateLogLevel,	log_level,			zend_aware_globals, aware_globals)
+	STD_PHP_INI_ENTRY("aware.error_reporting",		"22519",	PHP_INI_PERDIR, OnUpdateLogLevel,	log_level,			zend_aware_globals, aware_globals)
+	STD_PHP_INI_ENTRY("aware.module_error_reporting", NULL,	PHP_INI_PERDIR, OnUpdateModuleErrorReporting,	module_error_reporting,			zend_aware_globals, aware_globals)
+	
+	
 	STD_PHP_INI_ENTRY("aware.depth",			"10",		PHP_INI_PERDIR, OnUpdateLong,		depth,				zend_aware_globals, aware_globals)
 	STD_PHP_INI_ENTRY("aware.log_get",			"1",		PHP_INI_PERDIR, OnUpdateBool,		log_get,			zend_aware_globals, aware_globals)
 	STD_PHP_INI_ENTRY("aware.log_post",			"1",		PHP_INI_PERDIR, OnUpdateBool,		log_post,			zend_aware_globals, aware_globals)
@@ -401,6 +466,16 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_ENTRY("aware.slow_request_threshold",	"0",	PHP_INI_PERDIR, OnUpdateLong,	slow_request_threshold,	zend_aware_globals, aware_globals)
 	STD_PHP_INI_ENTRY("aware.memory_usage_threshold",	"0",	PHP_INI_PERDIR, OnUpdateLong,	memory_usage_threshold,	zend_aware_globals, aware_globals)
 PHP_INI_END()
+
+static int php_aware_long_dtor(void **datas TSRMLS_DC)
+{
+	long *st = *datas;
+	
+	if (st) {
+		free(st);
+	}
+	return ZEND_HASH_APPLY_REMOVE;
+}
 
 static void php_aware_init_globals(zend_aware_globals *aware_globals)
 {
@@ -427,11 +502,13 @@ static void php_aware_init_globals(zend_aware_globals *aware_globals)
 	aware_globals->memory_usage_threshold = 0;
 	
 	aware_globals->orig_set_error_handler = NULL;
-	aware_globals->user_error_handler = NULL;
+	aware_globals->user_error_handler     = NULL;
 	
 	aware_globals->serialize_cache      = NULL;
 	aware_globals->serialize_cache_len  = 0;
 	aware_globals->serialize_cache_uuid = NULL;
+
+	zend_hash_init(&(aware_globals->module_error_reporting), 0, NULL, (dtor_func_t)php_aware_long_dtor, 1);
 }
 
 static void php_aware_rinit_override(TSRMLS_D) 
@@ -518,7 +595,7 @@ PHP_MINIT_FUNCTION(aware)
 	REGISTER_INI_ENTRIES();
 	
 	if (!AWARE_G(storage_modules)) {
-		AWARE_G(enabled) = 0;	
+		AWARE_G(enabled) = 0;
 	}
 	return SUCCESS;
 }
@@ -527,6 +604,11 @@ PHP_MINIT_FUNCTION(aware)
 /* {{{ PHP_MSHUTDOWN_FUNCTION(aware) */
 PHP_MSHUTDOWN_FUNCTION(aware)
 {
+	if (AWARE_G(enabled)) {
+		zend_hash_clean(&AWARE_G(module_error_reporting));
+		zend_hash_destroy(&AWARE_G(module_error_reporting));
+	}
+	
 	UNREGISTER_INI_ENTRIES();
 	return SUCCESS;
 }

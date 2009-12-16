@@ -76,6 +76,8 @@ ZEND_BEGIN_MODULE_GLOBALS(aware)
 	
 	char *serialize_cache_uuid;
 	
+	HashTable module_error_reporting;
+	
 ZEND_END_MODULE_GLOBALS(aware)
 
 ZEND_EXTERN_MODULE_GLOBALS(aware)

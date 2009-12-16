@@ -30,8 +30,7 @@ ZEND_DECLARE_MODULE_GLOBALS(aware)
 /*
 	The module structure follows session module structure quite closely
 */
-
-static php_aware_storage_module *php_aware_storage_modules[MAX_MODULES + 1] = {0};
+static php_aware_storage_module *php_aware_storage_modules[MAX_MODULES + 1] = { 0 };
 
 static zend_bool php_aware_storage_module_is_configured(const char *mod_name TSRMLS_DC) 
 {
@@ -151,9 +150,26 @@ MY_AWARE_EXPORTS zend_bool php_aware_storage_unserialize(const char *string, int
 }
 
 /* Sends the event to storage module */
-void php_aware_storage_store(php_aware_storage_module *mod, const char *uuid, zval *event, const char *error_filename, long error_lineno TSRMLS_DC) 
+void php_aware_storage_store(php_aware_storage_module *mod, const char *uuid, zval *event, long type, const char *error_filename, long error_lineno TSRMLS_DC) 
 {
 	aware_printf("Storing event to module: %s\n", mod->name);
+	
+	/*
+		User can override the storage module error reporting per module basis
+		This means that we need to check here if the module is configured to 
+		store events of this level. 
+	*/
+	
+	if (zend_hash_num_elements(&AWARE_G(module_error_reporting)) > 0) {
+		long **level;
+		/* This means that we might have overriden error reporting level */
+		if (zend_hash_find(&AWARE_G(module_error_reporting), mod->name, strlen(mod->name) + 1, (void **)&level) == SUCCESS) {
+			/* Check if module is configured for this sort of errors */
+			if (!(**level & type)) {
+				return;
+			}
+		}
+	}
 	
 	/* Connect failed, report error and bail out */
 	if (mod->connect(TSRMLS_C) == AwareOperationFailure) {
@@ -171,13 +187,13 @@ void php_aware_storage_store(php_aware_storage_module *mod, const char *uuid, zv
 }
 
 /* Sends the event to all available storage modules */
-void php_aware_storage_store_all(const char *uuid, zval *event, const char *error_filename, long error_lineno TSRMLS_DC) 
+void php_aware_storage_store_all(const char *uuid, zval *event, long type, const char *error_filename, long error_lineno TSRMLS_DC) 
 {
 	int i;
 	
 	for (i = 0; i < MAX_MODULES; i++) {
 		if (php_aware_storage_modules[i]) {
-			php_aware_storage_store(php_aware_storage_modules[i], uuid, event, error_filename, error_lineno TSRMLS_CC);
+			php_aware_storage_store(php_aware_storage_modules[i], uuid, event, type, error_filename, error_lineno TSRMLS_CC);
 		}
 	}
 }

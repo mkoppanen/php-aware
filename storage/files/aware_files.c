@@ -265,7 +265,7 @@ PHP_MINIT_FUNCTION(aware_files)
 		php_stat(AWARE_FILES_G(storage_path), strlen(AWARE_FILES_G(storage_path)), FS_IS_DIR, stat TSRMLS_CC);
 		
 		if (Z_TYPE_P(stat) != IS_BOOL || !Z_BVAL_P(stat)) {
-			php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_files. %s is not a director", AWARE_FILES_G(storage_path));
+			php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Could not enable aware_files. %s is not a directory", AWARE_FILES_G(storage_path));
 			retval = FAILURE;
 		}
 		zval_dtor(stat);
