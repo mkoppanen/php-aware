@@ -108,6 +108,7 @@ Storage backends
       
       aware_spread.user_name | String | Username of the sender, must be unique to the machine
     
+    
   - stomp
     Sends the event to stomp message queue
     
@@ -135,6 +136,3 @@ Storage backends
     	
     	aware_tokyo.cabinet_block | String | Use blocking locks
     
-    
-    
-
