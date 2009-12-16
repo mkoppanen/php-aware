@@ -1,12 +1,17 @@
 What is aware?
 
-aware is a PHP monitoring system that supports storing PHP errors (events) into different storage backends. Currently supported backends are files, snmp, tokyo cabinet/tyrant and stomp. The events can be later retrieved from backends that support retrieval.
+aware is a PHP monitoring system that supports storing PHP errors (events) into different storage backends. 
+The events can be later retrieved from backends that support retrieval.
 
 How does it work?
 
-Roughly: override zend_error_cb, set_error_handler and restore_error_handler with a custom function that takes a copy of the current context and sends the error to the backend. The backend storage is abstracted from away and each backend storage is a separate PHP extension. The backend will receive a zval * containing information about the current error which it usually serializes (TODO: serialize only once) and stores based on it's own configuration. 
+Roughly: override zend_error_cb, set_error_handler and restore_error_handler with a custom function that takes 
+a copy of the current context and sends the error to the backend. The backend storage is abstracted from away 
+and each backend storage is a separate PHP extension. The backend will receive a zval * containing information 
+about the current error which it usually serializes and stores based on it's own configuration. 
 
-Currently it is possible to chain the backends to allow configurations such as store the event to tokyo tyrant and send snmp trap as well.
+Currently it is possible to chain the backends to allow configurations such as store the event to 
+tokyo tyrant and send snmp trap as well.
 
 
 So the cycle is a about the following:
@@ -31,11 +36,36 @@ What does aware monitor?
 
 How can I view the reports?
 
-Use aware_event_get(string mod_name, string uuid) and aware_event_get_list(string mod_name[, int start, int limit]). At the time of writing there is no GUI available.
+Use aware_event_get(string mod_name, string uuid) and aware_event_get_list(string mod_name[, int start, int limit]). 
+There is a very simple GUI available in gui/ directory.
 
 
 Spread backend
 
 This product uses software developed by Spread Concepts LLC for use in the Spread toolkit. 
 For more information about Spread see http://www.spread.org
+
+
+Storage backends 
+
+  - email
+    Sends an email containing information about the error
+    
+  - files
+    Stores the information in files
+    
+  - snmp
+    Sends an snmp trap
+    
+  - spread
+    Sends the event to a spread network
+    
+  - stomp
+    Sends the event to stomp message queue
+    
+  - tokyo
+    Stores into tokyo cabinet or tokyo tyrant
+    
+    
+    
 
