@@ -19,5 +19,7 @@ cd ../stomp && \
 phpize && ./configure ${CONFIGURE_OPTS} && make clean && make && make install && \
 cd ../email && \
 phpize && ./configure ${CONFIGURE_OPTS} && make clean && make && make install && \
+cd ../spread && \
+phpize && ./configure ${CONFIGURE_OPTS} && make clean && make && make install && \
 cd ../skeleton && \
 phpize && ./configure ${CONFIGURE_OPTS} && make clean && make && make install
