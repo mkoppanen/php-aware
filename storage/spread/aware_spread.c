@@ -35,7 +35,6 @@ PHP_AWARE_CONNECT_FUNC(spread)
 		if (retval < 0) {
 			return AwareOperationFailure;
 		}
-		SP_join(AWARE_SPREAD_G(spread_mailbox), AWARE_SPREAD_G(group_name));
 		AWARE_SPREAD_G(connected) = 1;
 	}
 	
@@ -141,9 +140,7 @@ PHP_MSHUTDOWN_FUNCTION(aware_spread)
 	UNREGISTER_INI_ENTRIES();
 	
 	if (AWARE_SPREAD_G(connected)) {
-		SP_leave(AWARE_SPREAD_G(spread_mailbox), AWARE_SPREAD_G(group_name));
 		SP_disconnect(AWARE_SPREAD_G(spread_mailbox));
-		
 		AWARE_SPREAD_G(connected) = 0;
 	}
 	
