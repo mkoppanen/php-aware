@@ -52,6 +52,10 @@ Available functions:
   aware_event_delete(string mod_name, string uuid)
 
     Delete event from storage module
+    
+  aware_storage_module_list()
+  
+    Returns a list of currently configured storage modules
 
 
 GUI
