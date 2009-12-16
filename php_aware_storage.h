@@ -73,6 +73,8 @@ void php_aware_storage_store_all(const char *, zval *, long, const char *, long 
 
 zend_bool php_aware_storage_delete(const char *mod_name, const char *uuid TSRMLS_DC);
 
+void php_aware_storage_module_list(zval *return_value);
+
 /* Serialize event */
 MY_AWARE_EXPORTS void php_aware_storage_serialize(const char *uuid, zval *event, smart_str *data_var TSRMLS_DC);
 

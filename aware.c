@@ -111,6 +111,22 @@ PHP_FUNCTION(aware_event_delete)
 }
 /* }}} */
 
+/* {{{ aware_storage_module_list()
+	Get list of active storage modules
+*/
+PHP_FUNCTION(aware_storage_module_list)
+{
+	if (zend_parse_parameters_none() != SUCCESS) {
+		return;
+	}
+	
+	array_init(return_value);
+	php_aware_storage_module_list(return_value);
+
+	return;
+}
+/* }}} */
+
 /* {{{ __aware_error_handler_callback
 	Callback
 */
@@ -631,6 +647,7 @@ static zend_function_entry aware_functions[] = {
 	PHP_FE(aware_event_get, NULL)
 	PHP_FE(aware_event_get_list, NULL)
 	PHP_FE(aware_event_delete, NULL)
+	PHP_FE(aware_storage_module_list, NULL)
 	PHP_FE(__aware_error_handler_callback, NULL)
 	{NULL, NULL, NULL}
 };

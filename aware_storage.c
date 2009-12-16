@@ -99,6 +99,17 @@ php_aware_storage_module *php_aware_find_storage_module(const char *mod_name)
 	return ret;
 }
 
+void php_aware_storage_module_list(zval *return_value) 
+{
+	int i;
+
+	for (i = 0; i < MAX_MODULES; i++) {
+		if (php_aware_storage_modules[i]) {
+			add_next_index_string(return_value, php_aware_storage_modules[i]->name, 1);
+		}
+	}
+}
+
 /* Serialize to string */
 MY_AWARE_EXPORTS void php_aware_storage_serialize(const char *uuid, zval *event, smart_str *data_var TSRMLS_DC)
 {
@@ -259,7 +270,7 @@ zend_bool php_aware_storage_delete(const char *mod_name, const char *uuid TSRMLS
 	mod = php_aware_find_storage_module(mod_name);
 
 	if (!mod) {
-		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Storage module(%s) does not exist", mod_name);
+		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Unable to find storage module(%s)", mod_name);
 		return 0;
 	}
 	
