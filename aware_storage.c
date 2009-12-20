@@ -137,10 +137,23 @@ void php_aware_storage_module_list(zval *return_value)
 MY_AWARE_EXPORTS void php_aware_storage_serialize(const char *uuid, zval *event, smart_str *data_var TSRMLS_DC)
 {
 	php_serialize_data_t var_hash;
+	
+	if (AWARE_G(use_cache)) {
+		aware_printf("Finding item from cache %s\n", uuid);
+		
+		if (php_aware_cache_get((php_aware_serialize_cache *) &AWARE_G(s_cache), uuid, data_var)) {
+			aware_printf("Returning item from cache %s\n", uuid);
+			return;
+		}
+	}
 
 	PHP_VAR_SERIALIZE_INIT(var_hash);
 	php_var_serialize(data_var, &event, &var_hash TSRMLS_CC);
     PHP_VAR_SERIALIZE_DESTROY(var_hash);
+
+	if (AWARE_G(use_cache)) {
+		php_aware_cache_store((php_aware_serialize_cache *) &AWARE_G(s_cache), uuid, data_var);
+	}
 }
 /* }}} */
 
@@ -183,16 +196,16 @@ void php_aware_storage_store(php_aware_storage_module *mod, const char *uuid, zv
 	}
 	
 	/* Connect failed, report error and bail out */
-	if (mod->connect(TSRMLS_C) == AwareOperationFailure) {
+	if (mod->connect(TSRMLS_C) == AwareOperationFailed) {
 		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to connect the storage module (%s)", mod->name);
 		return;
 	}
 
-	if (mod->store(uuid, event, error_filename, error_lineno TSRMLS_CC) == AwareOperationFailure) {
+	if (mod->store(uuid, event, error_filename, error_lineno TSRMLS_CC) == AwareOperationFailed) {
 		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to store the event %s (%s)", uuid, mod->name);
 	}
 
-	if (mod->disconnect(TSRMLS_C) == AwareOperationFailure) {
+	if (mod->disconnect(TSRMLS_C) == AwareOperationFailed) {
 		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to disconnect storage module (%s)", mod->name);
 	}
 }
@@ -221,16 +234,16 @@ void php_aware_storage_get(const char *mod_name, const char *uuid, zval *return_
 	}
 	
 	/* Connect failed, report error and bail out */
-	if (mod->connect(TSRMLS_C) == AwareOperationFailure) {
+	if (mod->connect(TSRMLS_C) == AwareOperationFailed) {
 		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to connect the storage module (%s)", mod_name);
 		return;
 	}
 
-	if (mod->get(uuid, return_value TSRMLS_CC) == AwareOperationFailure) {
+	if (mod->get(uuid, return_value TSRMLS_CC) == AwareOperationFailed) {
 		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to get the event %s (%s)", uuid, mod_name);
 	}
 
-	if (mod->disconnect(TSRMLS_C) == AwareOperationFailure) {
+	if (mod->disconnect(TSRMLS_C) == AwareOperationFailed) {
 		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to disconnect storage module (%s)", mod->name);
 	}
 }
@@ -247,16 +260,16 @@ void php_aware_storage_get_list(const char *mod_name, long start, long limit, zv
 	}
 	
 	/* Connect failed, report error and bail out */
-	if (mod->connect(TSRMLS_C) == AwareOperationFailure) {
+	if (mod->connect(TSRMLS_C) == AwareOperationFailed) {
 		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to connect the storage module (%s)", mod_name);
 		return;
 	}
 	
-	if (mod->get_list(start, limit, return_value TSRMLS_CC) == AwareOperationFailure) {
+	if (mod->get_list(start, limit, return_value TSRMLS_CC) == AwareOperationFailed) {
 		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to get event list (%s)", mod_name);
 	}
 
-	if (mod->disconnect(TSRMLS_C) == AwareOperationFailure) {
+	if (mod->disconnect(TSRMLS_C) == AwareOperationFailed) {
 		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to disconnect storage module (%s)", mod->name);
 	}
 }
@@ -275,17 +288,17 @@ zend_bool php_aware_storage_delete(const char *mod_name, const char *uuid TSRMLS
 	}
 	
 	/* Connect failed, report error and bail out */
-	if (mod->connect(TSRMLS_C) == AwareOperationFailure) {
+	if (mod->connect(TSRMLS_C) == AwareOperationFailed) {
 		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to connect the storage module (%s)", mod_name);
 		return 0;
 	}
 	
-	if (mod->delete(uuid TSRMLS_CC) == AwareOperationFailure) {
+	if (mod->delete(uuid TSRMLS_CC) == AwareOperationFailed) {
 		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to delete the event %s (%s)", uuid, mod_name);
 		status = 0;
 	}
 
-	if (mod->disconnect(TSRMLS_C) == AwareOperationFailure) {
+	if (mod->disconnect(TSRMLS_C) == AwareOperationFailed) {
 		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to disconnect storage module (%s)", mod->name);
 		status = 0;
 	}

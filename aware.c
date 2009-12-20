@@ -493,7 +493,7 @@ static int php_aware_long_dtor(void **datas TSRMLS_DC)
 	return ZEND_HASH_APPLY_REMOVE;
 }
 
-static void php_aware_init_globals(zend_aware_globals *aware_globals)
+PHP_GINIT_FUNCTION(aware)
 {
 	aware_globals->storage_modules	= NULL;
 	aware_globals->enabled	   		= 1;
@@ -518,6 +518,19 @@ static void php_aware_init_globals(zend_aware_globals *aware_globals)
 	
 	aware_globals->orig_set_error_handler = NULL;
 	aware_globals->user_error_handler     = NULL;
+	
+	/* TODO: is there a need to init this if the module is not enabled */
+	zend_hash_init(&(aware_globals->module_error_reporting), 0, NULL, (dtor_func_t)php_aware_long_dtor, 1);
+	
+	php_aware_cache_init((php_aware_serialize_cache *) &(aware_globals->s_cache));
+} 
+
+PHP_GSHUTDOWN_FUNCTION(aware)
+{
+	php_aware_cache_deinit((php_aware_serialize_cache *) &(aware_globals->s_cache));	
+	
+	zend_hash_clean(&(aware_globals->module_error_reporting));
+	zend_hash_destroy(&(aware_globals->module_error_reporting));
 }
 
 static void php_aware_override_error_handling(TSRMLS_D) 
@@ -595,15 +608,11 @@ PHP_RSHUTDOWN_FUNCTION(aware)
 /* {{{ PHP_MINIT_FUNCTION(aware) */
 PHP_MINIT_FUNCTION(aware) 
 {
-	ZEND_INIT_MODULE_GLOBALS(aware, php_aware_init_globals, NULL); 
 	REGISTER_INI_ENTRIES();
 	
 	if (!AWARE_G(storage_modules)) {
 		AWARE_G(enabled) = 0;
 	}
-	
-	/* TODO: is there a need to init this if the module is not enabled */
-	zend_hash_init(&AWARE_G(module_error_reporting), 0, NULL, (dtor_func_t)php_aware_long_dtor, 1);
 	return SUCCESS;
 }
 /* }}} */
@@ -612,9 +621,6 @@ PHP_MINIT_FUNCTION(aware)
 PHP_MSHUTDOWN_FUNCTION(aware)
 {
 	UNREGISTER_INI_ENTRIES();
-	
-	zend_hash_clean(&AWARE_G(module_error_reporting));
-	zend_hash_destroy(&AWARE_G(module_error_reporting));
 	return SUCCESS;
 }
 
@@ -651,7 +657,13 @@ zend_module_entry aware_module_entry = {
 	PHP_RSHUTDOWN(aware),
 	PHP_MINFO(aware),
 	PHP_AWARE_EXTVER,
-	STANDARD_MODULE_PROPERTIES
+	
+	PHP_MODULE_GLOBALS(aware),
+	PHP_GINIT(aware),
+	PHP_GSHUTDOWN(aware), /* GSHUTDOWN */
+	NULL,
+	
+	STANDARD_MODULE_PROPERTIES_EX 
 };
 
 #ifdef COMPILE_DL_AWARE

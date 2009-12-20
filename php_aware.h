@@ -40,7 +40,6 @@
 /* Original error callback */
 typedef void (*php_aware_orig_error_cb_t)(int, const char *, const uint, const char *, va_list);
 
-
 ZEND_BEGIN_MODULE_GLOBALS(aware)
 	zend_bool enabled;			/* is the module enabled */
 	zend_bool log_get;			/* whether to log get values */
@@ -78,6 +77,9 @@ ZEND_BEGIN_MODULE_GLOBALS(aware)
 	struct rusage  request_start_rusage;	/* rsusage at the start of the request */
 
 	HashTable module_error_reporting;	/* hashtable containing error reporting levels for different storage modules */
+	
+	void *s_cache;
+	
 ZEND_END_MODULE_GLOBALS(aware)
 
 ZEND_EXTERN_MODULE_GLOBALS(aware)
