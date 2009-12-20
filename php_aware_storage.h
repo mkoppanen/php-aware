@@ -22,7 +22,10 @@
 #include "php_aware.h"
 #include "ext/standard/php_smart_str.h"
 
+/* {{{ define the string length of the uuid
+*/
 #define PHP_AWARE_UUID_LEN 36
+/* }}} */
 
 /*{{{ typedef enum _AwareOperationStatus
 */
@@ -42,14 +45,18 @@ typedef enum _AwareModuleRegisterStatus {
 } AwareModuleRegisterStatus;
 /* }}} */
 
+/* {{{ Arguments passed to different stages 
+*/
 #define PHP_AWARE_CONNECT_ARGS		TSRMLS_D
 #define PHP_AWARE_GET_ARGS			const char *uuid, zval *event TSRMLS_DC
 #define PHP_AWARE_STORE_ARGS		const char *uuid, zval *event, const char *error_filename, long error_lineno TSRMLS_DC
 #define PHP_AWARE_GET_LIST_ARGS		long start, long limit, zval *events TSRMLS_DC
 #define PHP_AWARE_DELETE_ARGS		const char *uuid TSRMLS_DC
 #define PHP_AWARE_DISCONNECT_ARGS	TSRMLS_D
+/* }}} */
 
-/* Storage structure for storing the events */
+/* {{{ typedef struct _php_aware_storage_module
+*/
 typedef struct _php_aware_storage_module {
 	char *name;
 	AwareOperationStatus  (*connect)(PHP_AWARE_CONNECT_ARGS);
@@ -59,6 +66,7 @@ typedef struct _php_aware_storage_module {
 	AwareOperationStatus  (*delete)(PHP_AWARE_DELETE_ARGS);
 	AwareOperationStatus  (*disconnect)(PHP_AWARE_DISCONNECT_ARGS);
 } php_aware_storage_module;
+/* }}} */
 
 /* {{{ php_aware_storage_module *php_aware_find_storage_module(const char *);
 */
@@ -110,7 +118,8 @@ MY_AWARE_EXPORTS zend_bool php_aware_storage_unserialize(const char *, int , zva
 MY_AWARE_EXPORTS AwareModuleRegisterStatus php_aware_register_storage_module(php_aware_storage_module * TSRMLS_DC);
 /* }}} */
 
-/* Function declaration macros */
+/* {{{ Storage function signatures 
+*/
 #define PHP_AWARE_CONNECT_FUNC(mod_name)	AwareOperationStatus php_aware_storage_connect_##mod_name(PHP_AWARE_CONNECT_ARGS)
 
 #define PHP_AWARE_GET_FUNC(mod_name)		AwareOperationStatus php_aware_storage_get_##mod_name(PHP_AWARE_GET_ARGS)
@@ -122,7 +131,10 @@ MY_AWARE_EXPORTS AwareModuleRegisterStatus php_aware_register_storage_module(php
 #define PHP_AWARE_DELETE_FUNC(mod_name)		AwareOperationStatus php_aware_storage_delete_##mod_name(PHP_AWARE_DELETE_ARGS)
 
 #define PHP_AWARE_DISCONNECT_FUNC(mod_name)	AwareOperationStatus php_aware_storage_disconnect_##mod_name(PHP_AWARE_DISCONNECT_ARGS)
+/* }}} */
 
+/* {{{ define storage functions
+*/
 #define PHP_AWARE_STORAGE_FUNCS(mod_name) \
 	PHP_AWARE_CONNECT_FUNC(mod_name); \
 	PHP_AWARE_GET_FUNC(mod_name); \
@@ -130,12 +142,19 @@ MY_AWARE_EXPORTS AwareModuleRegisterStatus php_aware_register_storage_module(php
 	PHP_AWARE_GET_LIST_FUNC(mod_name); \
 	PHP_AWARE_DELETE_FUNC(mod_name); \
 	PHP_AWARE_DISCONNECT_FUNC(mod_name); 
-		
+/* }}} */
+
+/* {{{ Define the func ptrs for the specific module
+*/
 #define PHP_AWARE_STORAGE_MOD(mod_name) \
 	#mod_name, php_aware_storage_connect_##mod_name, php_aware_storage_get_##mod_name, php_aware_storage_store_##mod_name, \
 	php_aware_storage_get_list_##mod_name, php_aware_storage_delete_##mod_name, php_aware_storage_disconnect_##mod_name
+/* }}} */	
 	
+/* {{{ Register the storage module. called from MINIT in module
+*/
 #define PHP_AWARE_STORAGE_REGISTER(mod_name) \
 	php_aware_register_storage_module(php_aware_storage_module_##mod_name##_ptr TSRMLS_CC)
+/* }}} */
 
 #endif
