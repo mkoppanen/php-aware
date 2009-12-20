@@ -68,16 +68,16 @@ ZEND_BEGIN_MODULE_GLOBALS(aware)
 	void (*orig_set_error_handler)(INTERNAL_FUNCTION_PARAMETERS);	/* the set_error_handle entry */
 	void (*orig_restore_error_handler)(INTERNAL_FUNCTION_PARAMETERS);	/* the restore error handler entry */
 	
-	zend_ptr_stack user_error_handlers;
-	zend_stack user_error_handler_levels;
+	zend_ptr_stack user_error_handlers;		/* previous user error handlers */
+	zend_stack user_error_handler_levels;	/* the levels the user error handler handles */
 	
-	zval *user_error_handler;
+	zval *user_error_handler;	/* the current active user error handler */
 	
-	long slow_request_threshold;
-	struct timeval request_start_tv;
-	struct rusage  request_start_rusage;
+	long slow_request_threshold;	/* how many msec is considered slow, setting > 0 turns on the slow request monitor */
+	struct timeval request_start_tv;	/* when the request started */
+	struct rusage  request_start_rusage;	/* rsusage at the start of the request */
 
-	HashTable module_error_reporting;
+	HashTable module_error_reporting;	/* hashtable containing error reporting levels for different storage modules */
 ZEND_END_MODULE_GLOBALS(aware)
 
 ZEND_EXTERN_MODULE_GLOBALS(aware)
