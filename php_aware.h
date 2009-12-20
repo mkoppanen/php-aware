@@ -40,32 +40,33 @@
 /* Original error callback */
 typedef void (*php_aware_orig_error_cb_t)(int, const char *, const uint, const char *, va_list);
 
+
 ZEND_BEGIN_MODULE_GLOBALS(aware)
-	zend_bool enabled;
-	zend_bool log_get;
-	zend_bool log_post;
-	zend_bool log_session;
-	zend_bool log_cookie;
-	zend_bool log_env;
-	zend_bool log_server;
-	zend_bool log_files;
+	zend_bool enabled;			/* is the module enabled */
+	zend_bool log_get;			/* whether to log get values */
+	zend_bool log_post;			/* whether to log post values */
+	zend_bool log_session;		/* whether to log session values */
+	zend_bool log_cookie;		/* whether to log cookies */
+	zend_bool log_env;			/* whether to log environment */
+	zend_bool log_server;		/* whether to log server values */
+	zend_bool log_files;		/* whether to log files array */
 	
-	zend_bool log_backtrace;
+	zend_bool log_backtrace;	/* whether to store backtrace */
 
-	zend_bool use_cache;
+	zend_bool use_cache;		/* use serialize cache? stores repeated serializations */
 	
-	zend_bool enable_event_trigger;
+	zend_bool enable_event_trigger;	/* do we want to log user generated events */
 
-	long log_level;
-	long depth;
-	long memory_usage_threshold;
+	long log_level;					/* what sort of events do we store */
+	long depth;						/* how many levels to serialize (arrays) */
+	long memory_usage_threshold;	/* how many bytes is the limit of excess usage */
 	
-	char *storage_modules;
+	char *storage_modules;			/* what storage modules to enable */
 
-	php_aware_orig_error_cb_t orig_error_cb;
+	php_aware_orig_error_cb_t orig_error_cb;	/* the original zend_error_cb */
 
-	void (*orig_set_error_handler)(INTERNAL_FUNCTION_PARAMETERS);
-	void (*orig_restore_error_handler)(INTERNAL_FUNCTION_PARAMETERS);
+	void (*orig_set_error_handler)(INTERNAL_FUNCTION_PARAMETERS);	/* the set_error_handle entry */
+	void (*orig_restore_error_handler)(INTERNAL_FUNCTION_PARAMETERS);	/* the restore error handler entry */
 	
 	zend_ptr_stack user_error_handlers;
 	zend_stack user_error_handler_levels;
@@ -75,14 +76,8 @@ ZEND_BEGIN_MODULE_GLOBALS(aware)
 	long slow_request_threshold;
 	struct timeval request_start_tv;
 	struct rusage  request_start_rusage;
-	
-	char *serialize_cache;
-	int serialize_cache_len;
-	
-	char *serialize_cache_uuid;
-	
+
 	HashTable module_error_reporting;
-	
 ZEND_END_MODULE_GLOBALS(aware)
 
 ZEND_EXTERN_MODULE_GLOBALS(aware)

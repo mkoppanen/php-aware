@@ -54,7 +54,7 @@ PHP_AWARE_STORE_FUNC(email)
 		
 		php_end_ob_buffer(0, 0 TSRMLS_CC);
 		
-		return AwareOperationFailure;
+		return AwareOperationFailed;
     }
 	php_end_ob_buffer(0, 0 TSRMLS_CC);
 

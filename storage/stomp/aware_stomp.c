@@ -38,7 +38,7 @@ PHP_AWARE_CONNECT_FUNC(stomp)
 			php_aware_original_error_cb(E_CORE_WARNING TSRMLS_CC, "Unable to connect aware_stomp: %s", err_msg);
 			efree(err_msg);
 		}
-		return AwareOperationFailure;
+		return AwareOperationFailed;
 	}
 	return AwareOperationSuccess;
 }
@@ -55,7 +55,7 @@ PHP_AWARE_STORE_FUNC(stomp)
 	
 	if (!php_aware_stomp_send(AWARE_STOMP_G(handle), AWARE_STOMP_G(queue_name), string.c, string.len TSRMLS_CC)) {
 		smart_str_free(&string);
-		return AwareOperationFailure;
+		return AwareOperationFailed;
 	}
 	smart_str_free(&string);
 	return AwareOperationSuccess;

@@ -25,7 +25,7 @@
 
 #ifdef HAVE_GETTIMEOFDAY
 
-#ifndef timersub
+# ifndef timersub
 
 #define timersub(tvp, uvp, vvp) \
 	do { \
@@ -37,13 +37,14 @@
 		} \
 	} while (0);
 	
-#endif /* ifndef timersub */
+# endif /* ifndef timersub */
 
-#define timeval_to_msec(_my_tv) ((_my_tv.tv_sec * 1000) +  (_my_tv.tv_usec / 1000))
+#define timeval_to_msec(_my_tv) ((_my_tv.tv_sec * 1000) + (_my_tv.tv_usec / 1000))
 	
 #define timeval_to_double(_my_tv) (double)(_my_tv).tv_sec + ((double)(_my_tv).tv_usec / 1000000.0)
 
-/* Capture info about slow request */
+/* {{{ static void php_aware_capture_slow_request(long elapsed, long threshold, double u_time, double s_time, const char *format, ...)
+*/
 static void php_aware_capture_slow_request(long elapsed, long threshold, double u_time, double s_time, const char *format, ...)
 {
 	va_list args;
@@ -58,6 +59,7 @@ static void php_aware_capture_slow_request(long elapsed, long threshold, double 
 	add_assoc_long(slow_request, "time_elapsed", elapsed);
 	add_assoc_long(slow_request, "slow_request_threshold", threshold);	
 	
+	/* Info about where the time is spent, TODO: check WIN32 */
 	add_assoc_double(slow_request, "rusage_user_time", u_time);
 	add_assoc_double(slow_request, "rusage_system_time", s_time);
 	
@@ -68,8 +70,9 @@ static void php_aware_capture_slow_request(long elapsed, long threshold, double 
 	php_aware_capture_error_ex(event, E_CORE_WARNING, "aware internal report", 0, 1, format, args);
 	va_end(args);
 }
+/* }}} */
 
-/* {{{ Initializes the slow request monitor
+/* {{{ zend_bool php_aware_init_slow_request_monitor(struct timeval *request_start, struct rusage *request_start_rusage)
 */
 zend_bool php_aware_init_slow_request_monitor(struct timeval *request_start, struct rusage *request_start_rusage)
 {
@@ -82,6 +85,8 @@ zend_bool php_aware_init_slow_request_monitor(struct timeval *request_start, str
 }
 /* }}} */
 
+/* {{{ void php_aware_monitor_slow_request(struct timeval *request_start, struct rusage *request_start_rusage, long threshold)
+*/
 void php_aware_monitor_slow_request(struct timeval *request_start, struct rusage *request_start_rusage, long threshold) 
 {
 	struct timeval request_end;
@@ -109,9 +114,11 @@ void php_aware_monitor_slow_request(struct timeval *request_start, struct rusage
 		}
 	}
 }
-#endif
+/* }}} */
+#endif /* ifdef HAVE_GETTIMEOFDAY */
 
-/* Capture info about excessive memory usage */
+/* {{{ static void php_aware_capture_memory_usage(long peak, long threshold, const char *format, ...)
+*/
 static void php_aware_capture_memory_usage(long peak, long threshold, const char *format, ...)
 {
 	va_list args;
@@ -133,7 +140,10 @@ static void php_aware_capture_memory_usage(long peak, long threshold, const char
 	php_aware_capture_error_ex(event, E_CORE_WARNING, "aware internal report", 0, 1, format, args);
 	va_end(args);
 }
+/* }}} */
 
+/* {{{ void php_aware_monitor_memory_usage(long threshold TSRMLS_DC)
+*/
 void php_aware_monitor_memory_usage(long threshold TSRMLS_DC)
 {
 	long peak = zend_memory_peak_usage(1 TSRMLS_CC);
@@ -142,3 +152,4 @@ void php_aware_monitor_memory_usage(long threshold TSRMLS_DC)
 		php_aware_capture_memory_usage(peak, threshold, "Excessive memory usage detected");
 	}
 }
+/* }}} */

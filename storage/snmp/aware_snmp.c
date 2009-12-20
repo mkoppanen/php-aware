@@ -53,24 +53,24 @@ AwareOperationStatus php_aware_send_snmp_trap(netsnmp_session *sess, const char 
 	trap = csysuptime;
 	
 	if (snmp_add_var(pdu, objid_sysuptime, sizeof(objid_sysuptime) / sizeof(oid), 't', trap) != 0) {
-		return AwareOperationFailure;
+		return AwareOperationFailed;
 	}
 
 	if (snmp_add_var(pdu, objid_snmptrap, sizeof(objid_snmptrap) / sizeof(oid), 'o', AWARE_SNMP_G(error_msg_oid)) != 0) {
-		return AwareOperationFailure;
+		return AwareOperationFailed;
 	}
 	
 	/* First parameter is the uuid of the event */
 	if (!snmp_parse_oid(AWARE_SNMP_G(uuid_oid), objid_uuid, &oid_len)) {
-		return AwareOperationFailure;
+		return AwareOperationFailed;
 	}
 	if (snmp_add_var(pdu, objid_uuid, oid_len, 's', uuid) != 0) {
-		return AwareOperationFailure;
+		return AwareOperationFailed;
 	}
 
 	/* Next filename and line */
 	if (!snmp_parse_oid(AWARE_SNMP_G(name_oid), objid_php_name, &oid_len)) {
-		return AwareOperationFailure;
+		return AwareOperationFailed;
 	}
 
 	/* The script filename and line */
@@ -79,20 +79,20 @@ AwareOperationStatus php_aware_send_snmp_trap(netsnmp_session *sess, const char 
 	efree(error_file_line);
 	
 	if (retval != 0) {
-		return AwareOperationFailure;
+		return AwareOperationFailed;
 	}
 
 	/* And error message last */
 	if (!snmp_parse_oid(AWARE_SNMP_G(error_msg_oid), objid_php_message, &oid_len)) {
-		return AwareOperationFailure;
+		return AwareOperationFailed;
 	}
 	if (snmp_add_var(pdu, objid_php_message, oid_len, 's', message) != 0) {
-		return AwareOperationFailure;
+		return AwareOperationFailed;
 	}
 
 	/* Send the trap */
 	if (snmp_send(sess, pdu) == 0) {
-		return AwareOperationFailure;
+		return AwareOperationFailed;
 	}
 
 	return AwareOperationSuccess;
@@ -153,7 +153,7 @@ PHP_AWARE_CONNECT_FUNC(snmp)
 		AWARE_SNMP_G(snmp_sess) = php_aware_snmp_init_snmp_session(AWARE_SNMP_G(trap_host), AWARE_SNMP_G(trap_community));
 		
 		if (!AWARE_SNMP_G(snmp_sess)) {
-			return AwareOperationFailure;
+			return AwareOperationFailed;
 		}
 	}
 	return AwareOperationSuccess;

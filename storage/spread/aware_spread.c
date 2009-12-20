@@ -33,7 +33,7 @@ PHP_AWARE_CONNECT_FUNC(spread)
 		retval = SP_connect(AWARE_SPREAD_G(spread_name), AWARE_SPREAD_G(user_name), 0, 1, &AWARE_SPREAD_G(spread_mailbox), private_group);
 	
 		if (retval < 0) {
-			return AwareOperationFailure;
+			return AwareOperationFailed;
 		}
 		AWARE_SPREAD_G(connected) = 1;
 	}
@@ -56,7 +56,7 @@ PHP_AWARE_STORE_FUNC(spread)
 	retval = SP_multicast(AWARE_SPREAD_G(spread_mailbox), AGREED_MESS, AWARE_SPREAD_G(group_name), 1, string.len, string.c);
 	smart_str_free(&string);
 	
-	return (retval < 0) ? AwareOperationFailure : AwareOperationSuccess;
+	return (retval < 0) ? AwareOperationFailed : AwareOperationSuccess;
 }
 
 PHP_AWARE_GET_LIST_FUNC(spread)

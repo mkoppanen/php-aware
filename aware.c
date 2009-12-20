@@ -501,7 +501,6 @@ static void php_aware_init_globals(zend_aware_globals *aware_globals)
 	aware_globals->log_level   		= 22519;
 
 	aware_globals->depth	   		= 10;
-	aware_globals->enabled	   		= 1;
 	aware_globals->log_get	   		= 1;
 	aware_globals->log_post	   		= 1;
 	aware_globals->log_session 		= 1;
@@ -519,15 +518,9 @@ static void php_aware_init_globals(zend_aware_globals *aware_globals)
 	
 	aware_globals->orig_set_error_handler = NULL;
 	aware_globals->user_error_handler     = NULL;
-	
-	aware_globals->serialize_cache      = NULL;
-	aware_globals->serialize_cache_len  = 0;
-	aware_globals->serialize_cache_uuid = NULL;
-
-	zend_hash_init(&(aware_globals->module_error_reporting), 0, NULL, (dtor_func_t)php_aware_long_dtor, 1);
 }
 
-static void php_aware_rinit_override(TSRMLS_D) 
+static void php_aware_override_error_handling(TSRMLS_D) 
 {
 	zend_function *orig_set_error_handler, *orig_restore_error_handler;
 	
@@ -548,7 +541,7 @@ static void php_aware_rinit_override(TSRMLS_D)
 PHP_RINIT_FUNCTION(aware)
 {
 	if (AWARE_G(enabled)) {
-		php_aware_rinit_override(TSRMLS_C);
+		php_aware_override_error_handling(TSRMLS_C);
 
 #ifdef HAVE_GETTIMEOFDAY	
 		if (AWARE_G(slow_request_threshold)) {
@@ -561,7 +554,7 @@ PHP_RINIT_FUNCTION(aware)
 	return SUCCESS;
 }
 
-static void php_aware_rshutdown_restore(TSRMLS_D) 
+static void php_aware_restore_error_handling(TSRMLS_D) 
 {
 	zend_function *orig_set_error_handler, *orig_restore_error_handler;
 	
@@ -594,12 +587,7 @@ PHP_RSHUTDOWN_FUNCTION(aware)
 			php_aware_monitor_memory_usage(AWARE_G(memory_usage_threshold) TSRMLS_CC);
 		}
 		/* restore error handler */
-		php_aware_rshutdown_restore(TSRMLS_C);
-		
-		if (AWARE_G(serialize_cache_uuid)) {
-			efree(AWARE_G(serialize_cache_uuid));
-			efree(AWARE_G(serialize_cache));
-		}
+		php_aware_restore_error_handling(TSRMLS_C);
 	}
 	return SUCCESS;
 }
@@ -613,6 +601,9 @@ PHP_MINIT_FUNCTION(aware)
 	if (!AWARE_G(storage_modules)) {
 		AWARE_G(enabled) = 0;
 	}
+	
+	/* TODO: is there a need to init this if the module is not enabled */
+	zend_hash_init(&AWARE_G(module_error_reporting), 0, NULL, (dtor_func_t)php_aware_long_dtor, 1);
 	return SUCCESS;
 }
 /* }}} */
@@ -620,12 +611,10 @@ PHP_MINIT_FUNCTION(aware)
 /* {{{ PHP_MSHUTDOWN_FUNCTION(aware) */
 PHP_MSHUTDOWN_FUNCTION(aware)
 {
-	if (AWARE_G(enabled)) {
-		zend_hash_clean(&AWARE_G(module_error_reporting));
-		zend_hash_destroy(&AWARE_G(module_error_reporting));
-	}
-	
 	UNREGISTER_INI_ENTRIES();
+	
+	zend_hash_clean(&AWARE_G(module_error_reporting));
+	zend_hash_destroy(&AWARE_G(module_error_reporting));
 	return SUCCESS;
 }
 

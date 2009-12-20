@@ -38,7 +38,7 @@ PHP_AWARE_GET_FUNC(files)
 	zend_bool status;
 
 	if (snprintf(filename, MAXPATHLEN, "%s/%s.aware", AWARE_FILES_G(storage_path), uuid) <= 0) {
-		return AwareOperationFailure;
+		return AwareOperationFailed;
 	}
 	
 	aware_printf("Filename: %s\n", filename);
@@ -46,21 +46,21 @@ PHP_AWARE_GET_FUNC(files)
 	stream = php_stream_open_wrapper(filename, "r", ENFORCE_SAFE_MODE & ~REPORT_ERRORS, NULL);
 	
 	if (!stream) {
-		return AwareOperationFailure;
+		return AwareOperationFailed;
 	}
 	
     buff_size = php_stream_copy_to_mem(stream, &buff, PHP_STREAM_COPY_ALL, 0);
 	php_stream_close(stream);
 
     if (!buff_size) {
-		return AwareOperationFailure;
+		return AwareOperationFailed;
     }
 
 	status = php_aware_storage_unserialize(buff, buff_size, event TSRMLS_CC);
 	efree(buff);
 	
 	if (!status) {
-		return AwareOperationFailure;
+		return AwareOperationFailed;
 	}
 	return AwareOperationSuccess;
 }
@@ -72,7 +72,7 @@ PHP_AWARE_STORE_FUNC(files)
 	smart_str string = {0};
 
 	if (snprintf(filename, MAXPATHLEN, "%s/%s.aware", AWARE_FILES_G(storage_path), uuid) <= 0) {
-		return AwareOperationFailure;
+		return AwareOperationFailed;
 	}
 	
 	aware_printf("Storage filename: %s\n", filename);
@@ -80,7 +80,7 @@ PHP_AWARE_STORE_FUNC(files)
 	stream = php_stream_open_wrapper(filename, "w+", ENFORCE_SAFE_MODE & ~REPORT_ERRORS, NULL);
 	
 	if (!stream) {
-		return AwareOperationFailure;
+		return AwareOperationFailed;
 	}
 	
 	php_aware_storage_serialize(uuid, event, &string TSRMLS_CC);
@@ -88,7 +88,7 @@ PHP_AWARE_STORE_FUNC(files)
 	if (php_stream_write(stream, string.c, string.len) < string.len) {
 		php_stream_close(stream);
 		smart_str_free(&string);
-		return AwareOperationFailure;
+		return AwareOperationFailed;
 	}
 	
 	php_stream_close(stream);
@@ -173,7 +173,7 @@ PHP_AWARE_GET_LIST_FUNC(files)
 	if (Z_TYPE_P(events) == IS_ARRAY) {
 		
 		if (zend_hash_sort(Z_ARRVAL_P(events), zend_qsort, php_aware_sort_mtime, 0 TSRMLS_CC) == FAILURE) {
-			return AwareOperationFailure;
+			return AwareOperationFailed;
 		}
 		
 		if (zend_hash_num_elements(Z_ARRVAL_P(events)) > limit) {
@@ -224,7 +224,7 @@ PHP_AWARE_DELETE_FUNC(files)
 	MAKE_STD_ZVAL(stat);
 	php_stat(path, path_len, FS_IS_FILE, stat TSRMLS_CC);
 	
-	status = AwareOperationFailure;
+	status = AwareOperationFailed;
 	
 	if (Z_BVAL_P(stat) && VCWD_UNLINK(path) == SUCCESS) {
 		status = AwareOperationSuccess;

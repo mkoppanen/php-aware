@@ -24,17 +24,23 @@
 
 #define PHP_AWARE_UUID_LEN 36
 
+/*{{{ typedef enum _AwareOperationStatus
+*/
 typedef enum _AwareOperationStatus {
-	AwareOperationFailure,
+	AwareOperationFailed,
 	AwareOperationSuccess,
 	AwareOperationNotSupported
 } AwareOperationStatus;
+/* }}} */
 
+/* {{{ typedef enum _AwareModuleRegisterStatus
+*/
 typedef enum _AwareModuleRegisterStatus {
 	AwareModuleNotConfigured,
 	AwareModuleRegistered,
 	AwareModuleFailed
 } AwareModuleRegisterStatus;
+/* }}} */
 
 #define PHP_AWARE_CONNECT_ARGS		TSRMLS_D
 #define PHP_AWARE_GET_ARGS			const char *uuid, zval *event TSRMLS_DC
@@ -54,32 +60,55 @@ typedef struct _php_aware_storage_module {
 	AwareOperationStatus  (*disconnect)(PHP_AWARE_DISCONNECT_ARGS);
 } php_aware_storage_module;
 
-/* Register a storage module */
-MY_AWARE_EXPORTS AwareModuleRegisterStatus php_aware_register_storage_module(php_aware_storage_module * TSRMLS_DC);
-
-/* Find a storage module */
+/* {{{ php_aware_storage_module *php_aware_find_storage_module(const char *);
+*/
 php_aware_storage_module *php_aware_find_storage_module(const char *);
+/* }}} */
 
-/* Send the event, takes care of reading configured modules and propagates the event */
+/* {{{ void php_aware_storage_store(php_aware_storage_module *, const char *, zval *, long, const char *, long TSRMLS_DC);
+*/
 void php_aware_storage_store(php_aware_storage_module *, const char *, zval *, long, const char *, long TSRMLS_DC);
+/* }}} */
 
-/* Get from storage */
+/* {{{ void php_aware_storage_get(const char *, const char *, zval * TSRMLS_DC);
+*/
 void php_aware_storage_get(const char *, const char *, zval * TSRMLS_DC);
+/* }}} */
 
-/* Get list of events */
+/* {{{ void php_aware_storage_get_list(const char *, long , long , zval * TSRMLS_DC);
+*/
 void php_aware_storage_get_list(const char *, long , long , zval * TSRMLS_DC);
+/* }}} */
 
+/* {{{ void php_aware_storage_store_all(const char *, zval *, long, const char *, long  TSRMLS_DC);
+*/
 void php_aware_storage_store_all(const char *, zval *, long, const char *, long  TSRMLS_DC);
+/* }}} */
 
+/* {{{ zend_bool php_aware_storage_delete(const char *mod_name, const char *uuid TSRMLS_DC);
+*/
 zend_bool php_aware_storage_delete(const char *mod_name, const char *uuid TSRMLS_DC);
+/* }}} */
 
+/* {{{ void php_aware_storage_module_list(zval *return_value);
+*/
 void php_aware_storage_module_list(zval *return_value);
+/* }}} */
 
-/* Serialize event */
+/* {{{ MY_AWARE_EXPORTS void php_aware_storage_serialize(const char *uuid, zval *event, smart_str *data_var TSRMLS_DC);
+*/
 MY_AWARE_EXPORTS void php_aware_storage_serialize(const char *uuid, zval *event, smart_str *data_var TSRMLS_DC);
+/* }}} */
 
-/* Unserialize event */
+/* {{{ MY_AWARE_EXPORTS zend_bool php_aware_storage_unserialize(const char *, int , zval * TSRMLS_DC);
+*/
 MY_AWARE_EXPORTS zend_bool php_aware_storage_unserialize(const char *, int , zval * TSRMLS_DC);
+/* }}} */
+
+/* {{{ MY_AWARE_EXPORTS AwareModuleRegisterStatus php_aware_register_storage_module(php_aware_storage_module * TSRMLS_DC);
+*/
+MY_AWARE_EXPORTS AwareModuleRegisterStatus php_aware_register_storage_module(php_aware_storage_module * TSRMLS_DC);
+/* }}} */
 
 /* Function declaration macros */
 #define PHP_AWARE_CONNECT_FUNC(mod_name)	AwareOperationStatus php_aware_storage_connect_##mod_name(PHP_AWARE_CONNECT_ARGS)

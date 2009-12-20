@@ -25,13 +25,19 @@
 
 ZEND_DECLARE_MODULE_GLOBALS(aware)
 
-#define MAX_MODULES 5
+/*
+	MAX_MODULES defines how many active modules there can be any given time.
+	'10 should be more than enough for everybody..'
+*/
+#define MAX_MODULES 10
 
 /*
 	The module structure follows session module structure quite closely
 */
 static php_aware_storage_module *php_aware_storage_modules[MAX_MODULES + 1] = { 0 };
 
+/* {{{ static zend_bool php_aware_storage_module_is_configured(const char *mod_name TSRMLS_DC) 
+*/
 static zend_bool php_aware_storage_module_is_configured(const char *mod_name TSRMLS_DC) 
 {
 	zend_bool retval = 0;
@@ -48,19 +54,27 @@ static zend_bool php_aware_storage_module_is_configured(const char *mod_name TSR
 	while (pch != NULL) {
 		char *mod = php_trim(pch, strlen(pch), NULL, 0, NULL, 3 TSRMLS_CC);
 		
-		if (mod && !strcmp(mod, mod_name)) {
+		if (mod) {
+			if (!strcmp(mod, mod_name)) {
+				retval = 1;
+			}
 			efree(mod);
-			retval = 1;
-			break;
 		}
+		
+		/* all done ? */
+		if (retval)
+			break;
+		
 		pch = php_strtok_r(NULL, ",", &last);
-		efree(mod);
 	}
 	
 	efree(ptr);
 	return retval;
 }
+/* }}} */
 
+/* {{{ MY_AWARE_EXPORTS AwareModuleRegisterStatus php_aware_register_storage_module(php_aware_storage_module *mod TSRMLS_DC)
+*/
 MY_AWARE_EXPORTS AwareModuleRegisterStatus php_aware_register_storage_module(php_aware_storage_module *mod TSRMLS_DC)
 {
 	int i, ret = AwareModuleFailed;
@@ -81,7 +95,10 @@ MY_AWARE_EXPORTS AwareModuleRegisterStatus php_aware_register_storage_module(php
 	}
 	return ret;	
 }
+/* }}} */
 
+/* {{{ php_aware_storage_module *php_aware_find_storage_module(const char *mod_name) 
+*/
 php_aware_storage_module *php_aware_find_storage_module(const char *mod_name) 
 {
 	int i;
@@ -98,7 +115,11 @@ php_aware_storage_module *php_aware_find_storage_module(const char *mod_name)
 	}
 	return ret;
 }
+/* }}} */
 
+/* {{{ void php_aware_storage_module_list(zval *return_value)
+	* return_value must be initialized as an array before calling this function
+*/
 void php_aware_storage_module_list(zval *return_value) 
 {
 	int i;
@@ -109,42 +130,22 @@ void php_aware_storage_module_list(zval *return_value)
 		}
 	}
 }
+/* }}} */
 
-/* Serialize to string */
+/* {{{ MY_AWARE_EXPORTS void php_aware_storage_serialize(const char *uuid, zval *event, smart_str *data_var TSRMLS_DC)
+*/
 MY_AWARE_EXPORTS void php_aware_storage_serialize(const char *uuid, zval *event, smart_str *data_var TSRMLS_DC)
 {
 	php_serialize_data_t var_hash;
-	
-	if (AWARE_G(use_cache)) {
-		if (AWARE_G(serialize_cache_uuid) && !strcmp(AWARE_G(serialize_cache_uuid), uuid)) {
-			smart_str_appendl(data_var, AWARE_G(serialize_cache), AWARE_G(serialize_cache_len));
-			smart_str_0(data_var);
-			return;
-		}
-	}
 
 	PHP_VAR_SERIALIZE_INIT(var_hash);
 	php_var_serialize(data_var, &event, &var_hash TSRMLS_CC);
     PHP_VAR_SERIALIZE_DESTROY(var_hash);
-
-	if (AWARE_G(use_cache)) {
-		if (!AWARE_G(serialize_cache_uuid) || strcmp(AWARE_G(serialize_cache_uuid), uuid)) {
-		
-    		if (AWARE_G(serialize_cache_uuid)) {
-    			efree(AWARE_G(serialize_cache_uuid));
-    		}
-		
-    		if (AWARE_G(serialize_cache)) {
-    			efree(AWARE_G(serialize_cache));
-    		}
-		
-    		AWARE_G(serialize_cache)      = estrndup(data_var->c, data_var->len);
-    		AWARE_G(serialize_cache_len)  = data_var->len;
-    		AWARE_G(serialize_cache_uuid) = estrdup(uuid);
-		}
-	}
 }
+/* }}} */
 
+/* {{{ MY_AWARE_EXPORTS zend_bool php_aware_storage_unserialize(const char *string, int string_len, zval *retval TSRMLS_DC)
+*/
 MY_AWARE_EXPORTS zend_bool php_aware_storage_unserialize(const char *string, int string_len, zval *retval TSRMLS_DC)
 {
 	zend_bool unserialized;
@@ -170,7 +171,6 @@ void php_aware_storage_store(php_aware_storage_module *mod, const char *uuid, zv
 		This means that we need to check here if the module is configured to 
 		store events of this level. 
 	*/
-	
 	if (zend_hash_num_elements(&AWARE_G(module_error_reporting)) > 0) {
 		long **level;
 		/* This means that we might have overriden error reporting level */

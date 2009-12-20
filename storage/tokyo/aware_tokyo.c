@@ -38,7 +38,7 @@ PHP_AWARE_CONNECT_FUNC(tokyo)
 	} else if (AWARE_TOKYO_G(backend) == AwareTokyoBackendTyrant) {
 		status = php_aware_tyrant_open(AWARE_TOKYO_G(tyrant), AWARE_TOKYO_G(tyrant_host), AWARE_TOKYO_G(tyrant_port));
 	}
-	return (status) ? AwareOperationSuccess : AwareOperationFailure;
+	return (status) ? AwareOperationSuccess : AwareOperationFailed;
 }
 
 PHP_AWARE_GET_FUNC(tokyo)
@@ -50,7 +50,7 @@ PHP_AWARE_GET_FUNC(tokyo)
 	} else if (AWARE_TOKYO_G(backend) == AwareTokyoBackendTyrant) {
 		status = php_aware_tyrant_get(AWARE_TOKYO_G(tyrant), uuid, event TSRMLS_CC);
 	}
-	return (status) ? AwareOperationSuccess : AwareOperationFailure;
+	return (status) ? AwareOperationSuccess : AwareOperationFailed;
 }
 
 PHP_AWARE_STORE_FUNC(tokyo)
@@ -66,7 +66,7 @@ PHP_AWARE_STORE_FUNC(tokyo)
 		status = php_aware_tyrant_put(AWARE_TOKYO_G(tyrant), uuid, string.c, string.len);
 	}
 	smart_str_free(&string);
-	return (status) ? AwareOperationSuccess : AwareOperationFailure;
+	return (status) ? AwareOperationSuccess : AwareOperationFailed;
 }
 
 PHP_AWARE_GET_LIST_FUNC(tokyo)
@@ -79,7 +79,7 @@ PHP_AWARE_GET_LIST_FUNC(tokyo)
 		status = php_aware_tyrant_get_list(AWARE_TOKYO_G(tyrant), start, limit, events);
 	}
 	
-	return (status) ? AwareOperationSuccess : AwareOperationFailure;
+	return (status) ? AwareOperationSuccess : AwareOperationFailed;
 }
 
 PHP_AWARE_DELETE_FUNC(tokyo)
@@ -91,7 +91,7 @@ PHP_AWARE_DELETE_FUNC(tokyo)
 	} else if (AWARE_TOKYO_G(backend) == AwareTokyoBackendTyrant) {
 		status = php_aware_tyrant_delete(AWARE_TOKYO_G(tyrant), uuid);
 	}
-	return (status) ? AwareOperationSuccess : AwareOperationFailure;
+	return (status) ? AwareOperationSuccess : AwareOperationFailed;
 }
 
 PHP_AWARE_DISCONNECT_FUNC(tokyo)
@@ -103,7 +103,7 @@ PHP_AWARE_DISCONNECT_FUNC(tokyo)
 	} else if (AWARE_TOKYO_G(backend) == AwareTokyoBackendTyrant) {
 		status = php_aware_tyrant_close(AWARE_TOKYO_G(tyrant));
 	}
-	return (status) ? AwareOperationSuccess : AwareOperationFailure;
+	return (status) ? AwareOperationSuccess : AwareOperationFailed;
 }
 
 static PHP_INI_MH(OnUpdateBackend)
