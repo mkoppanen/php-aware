@@ -40,6 +40,16 @@
 /* Original error callback */
 typedef void (*php_aware_orig_error_cb_t)(int, const char *, const uint, const char *, va_list);
 
+typedef struct _php_aware_serialize_cache {
+	char *data;
+	
+	int data_len;
+	
+	char *uuid;
+	
+	zend_bool has_item;
+} php_aware_serialize_cache;
+
 ZEND_BEGIN_MODULE_GLOBALS(aware)
 	zend_bool enabled;			/* is the module enabled */
 	zend_bool log_get;			/* whether to log get values */
@@ -78,7 +88,7 @@ ZEND_BEGIN_MODULE_GLOBALS(aware)
 
 	HashTable module_error_reporting;	/* hashtable containing error reporting levels for different storage modules */
 	
-	void *s_cache;
+	php_aware_serialize_cache s_cache;
 	
 ZEND_END_MODULE_GLOBALS(aware)
 

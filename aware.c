@@ -519,16 +519,14 @@ PHP_GINIT_FUNCTION(aware)
 	aware_globals->orig_set_error_handler = NULL;
 	aware_globals->user_error_handler     = NULL;
 	
-	/* TODO: is there a need to init this if the module is not enabled */
-	zend_hash_init(&(aware_globals->module_error_reporting), 0, NULL, (dtor_func_t)php_aware_long_dtor, 1);
 	
-	php_aware_cache_init((php_aware_serialize_cache *) &(aware_globals->s_cache));
+	php_aware_cache_init(&(aware_globals->s_cache));
+	zend_hash_init(&(aware_globals->module_error_reporting), 0, NULL, (dtor_func_t)php_aware_long_dtor, 1);
 } 
 
 PHP_GSHUTDOWN_FUNCTION(aware)
 {
-	php_aware_cache_deinit((php_aware_serialize_cache *) &(aware_globals->s_cache));	
-	
+	php_aware_cache_deinit(&(aware_globals->s_cache));	
 	zend_hash_clean(&(aware_globals->module_error_reporting));
 	zend_hash_destroy(&(aware_globals->module_error_reporting));
 }

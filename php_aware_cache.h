@@ -21,16 +21,6 @@
 
 #include "php_aware_private.h"
 
-typedef struct _php_aware_serialize_cache {
-	char *data;
-	
-	int data_len;
-	
-	char *uuid;
-	
-	zend_bool has_item;
-} php_aware_serialize_cache;
-
 /* {{{ void php_aware_cache_init(php_aware_serialize_cache *cache)
 */
 void php_aware_cache_init(php_aware_serialize_cache *cache);

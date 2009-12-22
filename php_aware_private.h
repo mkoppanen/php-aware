@@ -19,18 +19,18 @@
 #ifndef _PHP_AWARE_PRIVATE_H_
 # define _PHP_AWARE_PRIVATE_H_
 
-#include "php_aware.h"
-#include "php_aware_storage.h"
-#include "php_aware_request.h"
-#include "php_aware_uuid.h"
-#include "php_aware_cache.h"
-
 /* for HAVE_GETTIMEOFDAY */
 #ifdef PHP_WIN32
 # include "win32/time.h"
 #else
 # include "main/php_config.h"
 #endif
+
+#include "php_aware.h"
+#include "php_aware_storage.h"
+#include "php_aware_request.h"
+#include "php_aware_uuid.h"
+#include "php_aware_cache.h"
 
 void php_aware_capture_error_ex(zval *event, int type, const char *error_filename, const uint error_lineno, zend_bool free_event, const char *format, va_list args);
 
@@ -39,20 +39,5 @@ void php_aware_invoke_handler(int type TSRMLS_DC, const char *error_filename, co
 #ifndef Z_ADDREF_PP
 # define Z_ADDREF_PP(ppz) (*ppz)->refcount++;
 #endif
-
-
-ZEND_BEGIN_MODULE_GLOBALS(aware_private)
-	zend_bool enabled;			/* is the module enabled */
-	
-ZEND_END_MODULE_GLOBALS(aware_private)
-
-ZEND_EXTERN_MODULE_GLOBALS(aware_private)
-
-#ifdef ZTS
-# define AWARE_PRIVATE_G(v) TSRMG(aware_private_globals_id, zend_aware_private_globals *, v)
-#else
-# define AWARE_PRIVATE_G(v) (aware_private_globals.v)
-#endif
-
 
 #endif
