@@ -139,10 +139,7 @@ MY_AWARE_EXPORTS void php_aware_storage_serialize(const char *uuid, zval *event,
 	php_serialize_data_t var_hash;
 	
 	if (AWARE_G(use_cache)) {
-		aware_printf("Finding item from cache %s\n", uuid);
-		
-		if (php_aware_cache_get((php_aware_serialize_cache *) &AWARE_G(s_cache), uuid, data_var)) {
-			aware_printf("Returning item from cache %s\n", uuid);
+		if (php_aware_cache_get(&AWARE_G(s_cache), uuid, data_var)) {
 			return;
 		}
 	}
@@ -152,7 +149,7 @@ MY_AWARE_EXPORTS void php_aware_storage_serialize(const char *uuid, zval *event,
     PHP_VAR_SERIALIZE_DESTROY(var_hash);
 
 	if (AWARE_G(use_cache)) {
-		php_aware_cache_store((php_aware_serialize_cache *) &AWARE_G(s_cache), uuid, data_var);
+		php_aware_cache_store(&AWARE_G(s_cache), uuid, data_var);
 	}
 }
 /* }}} */

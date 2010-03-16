@@ -229,6 +229,11 @@ PHP_FUNCTION(aware_restore_error_handler)
 static void _add_assoc_zval_helper(zval *event, char *name, uint name_len TSRMLS_DC)
 {	
 	zval **ppzval;
+	
+	if (PG(auto_globals_jit)) {
+		zend_is_auto_global(name, name_len TSRMLS_CC);
+	}
+	
 	if (zend_hash_find(&EG(symbol_table), name, name_len, (void **) &ppzval) == SUCCESS) {
 		/* Make sure that freeing aware_array doesn't destroy superglobals */
 		Z_ADDREF_PP(ppzval);
@@ -518,8 +523,7 @@ PHP_GINIT_FUNCTION(aware)
 	
 	aware_globals->orig_set_error_handler = NULL;
 	aware_globals->user_error_handler     = NULL;
-	
-	
+
 	php_aware_cache_init(&(aware_globals->s_cache));
 	zend_hash_init(&(aware_globals->module_error_reporting), 0, NULL, (dtor_func_t)php_aware_long_dtor, 1);
 } 

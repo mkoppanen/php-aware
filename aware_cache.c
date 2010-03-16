@@ -27,7 +27,7 @@ void php_aware_cache_init(php_aware_serialize_cache *cache)
 	cache->data_len = 0;
 	
 	cache->uuid = malloc(PHP_AWARE_UUID_LEN + 1);
-	memset(cache->uuid, 0, PHP_AWARE_UUID_LEN);
+	memset(cache->uuid, 0, PHP_AWARE_UUID_LEN + 1);
 }
 /* }}} */
 
@@ -36,7 +36,7 @@ void php_aware_cache_init(php_aware_serialize_cache *cache)
 void php_aware_cache_clean(php_aware_serialize_cache *cache)
 {
 	free(cache->data);
-	free(cache->uuid);
+	memset(cache->uuid, 0, PHP_AWARE_UUID_LEN + 1);
 	
 	cache->data     = NULL;
 	cache->data_len = 0;
@@ -80,5 +80,7 @@ void php_aware_cache_deinit(php_aware_serialize_cache *cache)
 {
 	if (cache->has_item)
 		php_aware_cache_clean(cache);
+		
+	free(cache->uuid);	
 }
 /* }}} */

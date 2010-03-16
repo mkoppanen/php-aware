@@ -21,12 +21,21 @@
 
 #include "php_aware_private.h"
 
+/* {{{ void php_aware_monitor_memory_usage(long threshold TSRMLS_DC);
+*/
 void php_aware_monitor_memory_usage(long threshold TSRMLS_DC);
+/* }}} */
 
 #ifdef HAVE_GETTIMEOFDAY
+/* {{{ zend_bool php_aware_init_slow_request_monitor(struct timeval *, struct rusage *);
+*/
 zend_bool php_aware_init_slow_request_monitor(struct timeval *, struct rusage *);
+/* }}} */
 
+/* {{{ void php_aware_monitor_slow_request(struct timeval *, struct rusage *, long);
+*/
 void php_aware_monitor_slow_request(struct timeval *, struct rusage *, long);
-#endif
+/* }}} */
+#endif /* HAVE_GETTIMEOFDAY */
 
-#endif
+#endif /* _PHP_AWARE_REQUEST_H_ */

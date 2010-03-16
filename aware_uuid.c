@@ -19,9 +19,10 @@
 #include "php_aware_private.h"
 
 #ifdef PHP_WIN32
-
 #include <rpc.h>
 
+/* {{{ zend_bool php_aware_generate_uuid(char *buf)
+*/
 zend_bool php_aware_generate_uuid(char *buf) 
 {
 	UUID uuid;
@@ -46,11 +47,13 @@ zend_bool php_aware_generate_uuid(char *buf)
     RpcStringFree(&uuid_str);
 	return 1;
 }
+/* }}} */
 
 #else
-
 #include <uuid/uuid.h>
 
+/* {{{ zend_bool php_aware_generate_uuid(char *buf) 
+*/
 zend_bool php_aware_generate_uuid(char *buf) 
 {
 	uuid_t identifier;
@@ -59,9 +62,6 @@ zend_bool php_aware_generate_uuid(char *buf)
 	uuid_unparse(identifier, buf);
 	return 1;
 }
+/* }}} */
 
 #endif
-
-
-
-

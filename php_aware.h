@@ -70,7 +70,7 @@ ZEND_BEGIN_MODULE_GLOBALS(aware)
 	long depth;						/* how many levels to serialize (arrays) */
 	long memory_usage_threshold;	/* how many bytes is the limit of excess usage */
 	
-	char *storage_modules;			/* what storage modules to enable */
+	char *storage_modules;			/* which storage modules to enable */
 
 	php_aware_orig_error_cb_t orig_error_cb;	/* the original zend_error_cb */
 
@@ -88,25 +88,25 @@ ZEND_BEGIN_MODULE_GLOBALS(aware)
 
 	HashTable module_error_reporting;	/* hashtable containing error reporting levels for different storage modules */
 	
-	php_aware_serialize_cache s_cache;
+	php_aware_serialize_cache s_cache;	/* serialize cache, repeated serializations are stored here */
 	
 ZEND_END_MODULE_GLOBALS(aware)
 
 ZEND_EXTERN_MODULE_GLOBALS(aware)
 
 #ifdef ZTS
-# define AWARE_G(v) TSRMG(aware_globals_id, zend_aware_globals *, v)
+#  define AWARE_G(v) TSRMG(aware_globals_id, zend_aware_globals *, v)
 #else
-# define AWARE_G(v) (aware_globals.v)
+#  define AWARE_G(v) (aware_globals.v)
 #endif
 
 extern zend_module_entry aware_module_entry;
 #define phpext_aware_ptr &aware_module_entry
 
 #ifdef _AWARE_DEBUG_
-#define aware_printf(...) fprintf (stderr, __VA_ARGS__)
+#  define aware_printf(...) fprintf (stderr, __VA_ARGS__)
 #else
-#define aware_printf(...)
+#  define aware_printf(...)
 #endif
 
 /*

@@ -21,7 +21,6 @@
 
 /*
 	User must pass in buffer at least the size of PHP_AWARE_UUID_LEN + 1
-	
 	PHP_AWARE_UUID_LEN is defined in php_aware_storage.h
 */
 zend_bool php_aware_generate_uuid(char *);

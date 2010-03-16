@@ -32,9 +32,15 @@
 #include "php_aware_uuid.h"
 #include "php_aware_cache.h"
 
-void php_aware_capture_error_ex(zval *event, int type, const char *error_filename, const uint error_lineno, zend_bool free_event, const char *format, va_list args);
+/* {{{ void php_aware_capture_error_ex(zval *, int, const char *, const uint, zend_bool, const char *, va_list);
+*/
+void php_aware_capture_error_ex(zval *, int, const char *, const uint, zend_bool, const char *, va_list);
+/* }}} */
 
-void php_aware_invoke_handler(int type TSRMLS_DC, const char *error_filename, const uint error_lineno, const char *format, ...);
+/* {{{ void php_aware_invoke_handler(int TSRMLS_DC, const char *, const uint, const char *, ...);
+*/
+void php_aware_invoke_handler(int TSRMLS_DC, const char *, const uint, const char *, ...);
+/* }}} */
 
 #ifndef Z_ADDREF_PP
 # define Z_ADDREF_PP(ppz) (*ppz)->refcount++;
