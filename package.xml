@@ -47,6 +47,7 @@
    <file name="README" role="doc" />
    <file name="EXAMPLE_CONFIG.txt" role="doc" />
    <file name="INSTALL.txt" role="doc" />
+   <file name="LICENSE" role="doc" />
   </dir>
  </contents>
  <dependencies>
