@@ -90,6 +90,8 @@ ZEND_BEGIN_MODULE_GLOBALS(aware)
 	
 	php_aware_serialize_cache s_cache;	/* serialize cache, repeated serializations are stored here */
 	
+	char *error_page; /* Display pretty error page on fatal if set */
+	
 ZEND_END_MODULE_GLOBALS(aware)
 
 ZEND_EXTERN_MODULE_GLOBALS(aware)

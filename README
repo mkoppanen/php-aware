@@ -138,7 +138,7 @@ Storage backends
 
       aware_tokyo.cabinet_file | String | location of the cabinet file if cabinet is chosen
     	
-      aware_tokyo.cabinet_block | String | Use blocking locks
+      aware_tokyo.cabinet_block | boolean | Use blocking locks
     
     
 Ini settings
@@ -179,6 +179,8 @@ Ini settings
     aware.slow_request_threshold | integer | Setting > 0 activates slow request monitor (milliseconds)
     
     aware.memory_usage_threshold | integer | Setting > 0 activates memory usage monitor (bytes)
+    
+    aware.error_page | string | Error page filename. This page is displayed in case of a fatal error when display_errors is off
   
   
     

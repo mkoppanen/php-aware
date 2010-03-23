@@ -355,10 +355,35 @@ void php_aware_invoke_handler(int type TSRMLS_DC, const char *error_filename, co
 	va_end(args);
 }
 
+static void php_aware_display_error_page(const char *filename) 
+{
+	php_stream *stream = php_stream_open_wrapper(filename, "r", ENFORCE_SAFE_MODE & ~REPORT_ERRORS, NULL);
+	
+	if (stream) {
+		char *buff;
+		size_t buff_size;
+		
+		buff_size = php_stream_copy_to_mem(stream, &buff, PHP_STREAM_COPY_ALL, 0);
+		php_stream_close(stream);
+		
+		if (buff_size) {
+			PHPWRITE(buff, buff_size);
+			efree(buff);
+		}
+	}
+}
+
 /* Wrapper that calls the original callback or our callback */
 void php_aware_capture_error(int type, const char *error_filename, const uint error_lineno, const char *format, va_list args)
 {
 	TSRMLS_FETCH();
+	
+	/* Assume that display_errors if off */
+	if (!PG(display_errors) && AWARE_G(error_page)) {
+		if (type & E_PARSE || type & E_ERROR || type & E_COMPILE_ERROR || type & E_USER_ERROR) {
+			php_aware_display_error_page(AWARE_G(error_page));
+		}
+	}
 	
 	if (type & AWARE_G(log_level)) {
 		zval *event;
@@ -486,6 +511,9 @@ PHP_INI_BEGIN()
 
 	STD_PHP_INI_ENTRY("aware.slow_request_threshold",	"0",	PHP_INI_PERDIR, OnUpdateLong,	slow_request_threshold,	zend_aware_globals, aware_globals)
 	STD_PHP_INI_ENTRY("aware.memory_usage_threshold",	"0",	PHP_INI_PERDIR, OnUpdateLong,	memory_usage_threshold,	zend_aware_globals, aware_globals)
+	
+	/* Display pretty error pages if display_errors=0 and the error is fatal */
+	STD_PHP_INI_ENTRY("aware.error_page",	NULL,	PHP_INI_PERDIR, OnUpdateString,	error_page,	zend_aware_globals, aware_globals)
 PHP_INI_END()
 
 static int php_aware_long_dtor(void **datas TSRMLS_DC)
@@ -523,6 +551,8 @@ PHP_GINIT_FUNCTION(aware)
 	
 	aware_globals->orig_set_error_handler = NULL;
 	aware_globals->user_error_handler     = NULL;
+	
+	aware_globals->error_page = NULL;
 
 	php_aware_cache_init(&(aware_globals->s_cache));
 	zend_hash_init(&(aware_globals->module_error_reporting), 0, NULL, (dtor_func_t)php_aware_long_dtor, 1);
