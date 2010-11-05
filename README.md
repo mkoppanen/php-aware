@@ -6,9 +6,11 @@ The events can be later retrieved from backends that support retrieval.
 # How does it work?
 
 Roughly: override zend_error_cb, set_error_handler and restore_error_handler with a custom function that takes 
-a copy of the current context and sends the error to the backend. The backend storage is abstracted from away 
-and each backend storage is a separate PHP extension. The backend will receive a zval * containing information 
-about the current error which it usually serializes and stores based on it's own configuration. 
+a copy of the current context, sends error to the configured backends and invokes original error handler(s).
+
+The backend storage is abstracted from away and each backend storage is a separate PHP extension. 
+The backend will receive a zval * containing information about the current error which it usually 
+serializes and stores based on it's own configuration. 
 
 Currently it is possible to chain the backends to allow configurations such as store the event to 
 tokyo tyrant and send snmp trap as well.
