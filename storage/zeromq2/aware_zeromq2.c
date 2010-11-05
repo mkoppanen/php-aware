@@ -46,8 +46,10 @@ PHP_AWARE_CONNECT_FUNC(zeromq2)
 	}
 	
 	rc = zmq_connect(AWARE_ZEROMQ2_G(socket), AWARE_ZEROMQ2_G(dsn));
-	
+
+#ifdef ZMQ_LINGER	
 	(void) zmq_setsockopt(AWARE_ZEROMQ2_G(socket), ZMQ_LINGER, &linger, sizeof(int));
+#endif
 	return (rc == 0) ? AwareOperationSuccess : AwareOperationFailed;
 }
 
