@@ -19,6 +19,9 @@
   ; Load aware tokyo plugin
   extension=aware_tokyo.so
   
+  ; Enable tokyo backend
+  aware.storage_modules=tokyo
+  
   ; Tokyo Cabinet
   aware_tokyo.backend="cabinet"
   aware_tokyo.cabinet_file="/tmp/test.tct"
