@@ -139,7 +139,15 @@ Storage backends
       aware_tokyo.cabinet_file | String | location of the cabinet file if cabinet is chosen
     	
       aware_tokyo.cabinet_block | boolean | Use blocking locks
-    
+ 
+  - zeromq2
+    Sends events to zeromq2
+
+    Ini settings:
+      aware_zeromq2.dsn | String | Where to connect the publisher socket (Default: tcp://127.0.0.1:5555)
+
+      aware_zeromq2.topic | String | Topic to publish the messages in (Default: aware)
+
     
 Ini settings
 
