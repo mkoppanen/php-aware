@@ -43,15 +43,15 @@ So the cycle is a about the following:
 
 > aware_event_get(string mod_name, string uuid)
 
-    Get event from storage backend module.
+    Get event from storage backend module. Supported in 'files' and 'tokyo' backends
 
 > aware_event_get_list(string mod_name[, int start, int limit])
   
-    Get list of events from storage backend module
+    Get list of events from storage backend module. Supported in 'files' and 'tokyo' backends
   
 > aware_event_delete(string mod_name, string uuid)
 
-    Delete event from storage backend module
+    Delete event from storage backend module. Supported in 'files' and 'tokyo' backends
     
 > aware_storage_module_list()
   
