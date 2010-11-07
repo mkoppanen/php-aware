@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5 / aware                                                |
    +----------------------------------------------------------------------+
-   | Copyright (c) 2009 Mikko Koppanen                                    |
+   | Copyright (c) 2009-2010 Mikko Koppanen                               |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -26,30 +26,38 @@ php_aware_storage_module php_aware_storage_module_zeromq2 = {
 
 PHP_AWARE_CONNECT_FUNC(zeromq2)
 {
-	int rc, linger =100;
+	int rc, linger = 100;
 	
 	if (AWARE_ZEROMQ2_G(connected)) {
 		return AwareOperationSuccess;
 	}
 	
-	AWARE_ZEROMQ2_G(ctx) = zmq_init(1);
-	
 	if (!AWARE_ZEROMQ2_G(ctx)) {
-		return AwareOperationFailed;
+		AWARE_ZEROMQ2_G(ctx) = zmq_init(1);
+		
+		if (!AWARE_ZEROMQ2_G(ctx)) {
+			return AwareOperationFailed;
+		}
 	}
-	
-	AWARE_ZEROMQ2_G(socket) = zmq_socket(AWARE_ZEROMQ2_G(ctx), ZMQ_PUB);
 	
 	if (!AWARE_ZEROMQ2_G(socket)) {
-		zmq_term(AWARE_ZEROMQ2_G(ctx));
-		return AwareOperationFailed;
-	}
+		AWARE_ZEROMQ2_G(socket) = zmq_socket(AWARE_ZEROMQ2_G(ctx), ZMQ_PUB);
 	
+		if (!AWARE_ZEROMQ2_G(socket)) {
+			zmq_term(AWARE_ZEROMQ2_G(ctx));
+			
+			AWARE_ZEROMQ2_G(ctx) = NULL;
+			return AwareOperationFailed;
+		}
+	}
+
 	rc = zmq_connect(AWARE_ZEROMQ2_G(socket), AWARE_ZEROMQ2_G(dsn));
 
 #ifdef ZMQ_LINGER	
 	(void) zmq_setsockopt(AWARE_ZEROMQ2_G(socket), ZMQ_LINGER, &linger, sizeof(int));
 #endif
+
+	AWARE_ZEROMQ2_G(connected) = (rc == 0);
 	return (rc == 0) ? AwareOperationSuccess : AwareOperationFailed;
 }
 
@@ -82,11 +90,11 @@ PHP_AWARE_STORE_FUNC(zeromq2)
 	}
 	
 	if (topic_len) {
-		memcpy ((void *)zmq_msg_data(&msg), AWARE_ZEROMQ2_G(topic), topic_len);
-		memcpy ((void *)zmq_msg_data(&msg) + topic_len, "|", 1);
+		memcpy((void *)zmq_msg_data(&msg), AWARE_ZEROMQ2_G(topic), topic_len);
+		memcpy((void *)zmq_msg_data(&msg) + topic_len, "|", 1);
 		pos = topic_len + 1;
 	}
-	memcpy ((void *)zmq_msg_data(&msg) + pos, string.c, string.len + 1);
+	memcpy((void *)zmq_msg_data(&msg) + pos, string.c, string.len + 1);
 	
 	rc = zmq_send(AWARE_ZEROMQ2_G(socket), &msg, 0);
 	
@@ -156,8 +164,16 @@ PHP_MINIT_FUNCTION(aware_zeromq2)
 PHP_MSHUTDOWN_FUNCTION(aware_zeromq2)
 {
 	if (AWARE_ZEROMQ2_G(enabled)) {
-		zmq_close(AWARE_ZEROMQ2_G(socket));
-		zmq_term(AWARE_ZEROMQ2_G(ctx));
+		
+		if (AWARE_ZEROMQ2_G(socket)) {
+			zmq_close(AWARE_ZEROMQ2_G(socket));
+			AWARE_ZEROMQ2_G(socket) = NULL;
+		}
+		
+		if (AWARE_ZEROMQ2_G(ctx)) {
+			zmq_term(AWARE_ZEROMQ2_G(ctx));
+			AWARE_ZEROMQ2_G(ctx) = NULL;
+		}
 	}
 	UNREGISTER_INI_ENTRIES();
 	return SUCCESS;
