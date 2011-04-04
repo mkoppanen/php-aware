@@ -24,7 +24,7 @@
 
 
 # Define version and release number
-%define version 0.1.1
+%define version @PACKAGE_VERSION@
 %define release 1
 
 Name:      php-aware
