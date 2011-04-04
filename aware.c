@@ -20,6 +20,9 @@
 #include "Zend/zend_builtin_functions.h"
 #include "ext/standard/php_string.h"
 
+#include <fcntl.h>
+#include <sys/mman.h>
+
 #include "zend.h"
 #include "zend_ini_scanner.h"
 #include "zend_language_scanner.h"
