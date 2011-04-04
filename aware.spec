@@ -62,6 +62,17 @@ Requires: %{name} = %{version}-%{release}
 %{name} backend implementation which sends email.
 %endif
 
+### Conditional build for files
+%if %{with files}
+%package files
+Summary: File storage engine for %{name}
+Group:   Web/Applications
+Requires: %{name} = %{version}-%{release}
+
+%description files
+%{name} backend implementation which stores events in files.
+%endif
+
 %prep
 %setup -q -n aware-%{version}
 
@@ -87,6 +98,13 @@ echo "extension=aware.so" > %{buildroot}/%{_sysconfdir}/php.d/aware.ini
 	popd
 %endif
 
+%if %{with files}
+	pushd storage/files
+	/usr/bin/phpize && %configure && %{__make} %{?_smp_mflags}
+	%{__make} install INSTALL_ROOT=%{buildroot}
+	popd
+%endif
+
 
 %clean
 [ "%{buildroot}" != "/" ] && %{__rm} -rf %{buildroot}
@@ -102,6 +120,11 @@ echo "extension=aware.so" > %{buildroot}/%{_sysconfdir}/php.d/aware.ini
 %if %{with email}
 %files email
 %{_libdir}/php/modules/aware-email.so
+%endif
+
+%if %{with files}
+%files files
+%{_libdir}/php/modules/aware-files.so
 %endif
 
 
