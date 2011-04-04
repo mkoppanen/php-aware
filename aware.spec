@@ -215,7 +215,7 @@ echo "extension=aware.so" > %{buildroot}/%{_sysconfdir}/php.d/aware.ini
 %endif
 
 %if %{with zeromq2}
-%files stomp
+%files zeromq2
 %{_libdir}/php/modules/aware_zeromq2.so
 %endif
 
