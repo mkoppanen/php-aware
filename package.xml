@@ -48,10 +48,55 @@
    <file name="aware_cache.c" role="src" />
 
    <!-- misc files -->
-   <file name="README.md" role="doc" />
+   <file name="README" role="doc" />
    <file name="EXAMPLE_CONFIG.txt" role="doc" />
    <file name="INSTALL.txt" role="doc" />
    <file name="LICENSE" role="doc" />
+     <dir name="storage">
+	<dir name="email">
+	 <file name="aware_email.c" role="src" />
+	 <file name="config.m4" role="src" />
+	 <file name="php_aware_email.h" role="src" />
+	</dir>
+	<dir name="files">
+	 <file name="aware_files.c" role="src" />
+	 <file name="config.w32" role="src" />
+	 <file name="config.m4" role="src" />
+	 <file name="php_aware_files.h" role="src" />
+	</dir>
+	<dir name="snmp">
+	 <file name="aware_snmp.c" role="src" />
+	 <file name="config.m4" role="src" />
+	 <file name="php_aware_snmp.h" role="src" />
+	</dir>
+	<dir name="spread">
+	 <file name="aware_spread.c" role="src" />
+	 <file name="config.m4" role="src" />
+	 <file name="php_aware_spread.h" role="src" />
+	</dir>
+	<dir name="stomp">
+	 <file name="aware_stomp.c" role="src" />
+	 <file name="config.m4" role="src" />
+	 <file name="config.w32" role="src" />
+	 <file name="php_aware_stomp.h" role="src" />
+	 <file name="aware_stomp_funcs.c" role="src" />
+	 <file name="php_aware_stomp_funcs.h" role="src" />
+	</dir>
+	<dir name="tokyo">
+	 <file name="aware_tokyo.c" role="src" />
+	 <file name="aware_tokyo_cabinet.c" role="src" />
+	 <file name="aware_tokyo_tyrant.c" role="src" />
+	 <file name="php_aware_tokyo.h" role="src" />
+	 <file name="php_aware_tokyo_cabinet.h" role="src" />
+	 <file name="php_aware_tokyo_tyrant.h" role="src" />
+	 <file name="config.m4" role="src" />
+	</dir>
+	<dir name="zeromq2">
+	 <file name="aware_zeromq2.c" role="src" />
+	 <file name="php_aware_zeromq2.h" role="src" />
+	 <file name="config.m4" role="src" />
+	</dir>
+     </dir>
   </dir>
  </contents>
  <dependencies>
