@@ -211,7 +211,7 @@ void php_aware_storage_store(php_aware_storage_module *mod, const char *uuid, zv
 void php_aware_storage_store_all(const char *uuid, zval *event, long type, const char *error_filename, long error_lineno TSRMLS_DC) 
 {
 	int i;
-	
+
 	for (i = 0; i < MAX_MODULES; i++) {
 		if (php_aware_storage_modules[i]) {
 			php_aware_storage_store(php_aware_storage_modules[i], uuid, event, type, error_filename, error_lineno TSRMLS_CC);

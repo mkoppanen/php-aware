@@ -96,7 +96,7 @@ PHP_AWARE_STORE_FUNC(zeromq2)
 	}
 	memcpy((void *)zmq_msg_data(&msg) + pos, string.c, string.len + 1);
 	
-	rc = zmq_send(AWARE_ZEROMQ2_G(socket), &msg, 0);
+	rc = zmq_send(AWARE_ZEROMQ2_G(socket), &msg, ZMQ_NOBLOCK);
 	
 	zmq_msg_close(&msg);
 	smart_str_free(&string);
@@ -164,12 +164,10 @@ PHP_MINIT_FUNCTION(aware_zeromq2)
 PHP_MSHUTDOWN_FUNCTION(aware_zeromq2)
 {
 	if (AWARE_ZEROMQ2_G(enabled)) {
-		
 		if (AWARE_ZEROMQ2_G(socket)) {
 			zmq_close(AWARE_ZEROMQ2_G(socket));
 			AWARE_ZEROMQ2_G(socket) = NULL;
 		}
-		
 		if (AWARE_ZEROMQ2_G(ctx)) {
 			zmq_term(AWARE_ZEROMQ2_G(ctx));
 			AWARE_ZEROMQ2_G(ctx) = NULL;

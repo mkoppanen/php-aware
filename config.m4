@@ -8,7 +8,7 @@ if test "$PHP_AWARE" != "no"; then
 
   AC_MSG_CHECKING([for libuuid])
 
-  for i in $PHP_DCSESSION /usr /usr/local /opt /opt/local; do
+  for i in /usr /usr/local /opt /opt/local; do
   	if test -r "$i/include/uuid/uuid.h"; then
   		PHP_AWARE_LIBUUID=$i
   		break;

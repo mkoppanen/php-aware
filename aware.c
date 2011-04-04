@@ -242,7 +242,7 @@ static void _add_assoc_zval_helper(zval *event, char *name, uint name_len TSRMLS
 }
 
 /* event must be initialized with MAKE_STD_ZVAL or similar and array_init before sending here */
-void php_aware_capture_error_ex(zval *event, int type, const char *error_filename, const uint error_lineno, zend_bool free_event, const char *format, va_list args)
+void php_aware_capture_error_ex(zval *event, int type, const char *error_filename, const uint error_lineno, zend_bool free_event, const char *format, va_list args TSRMLS_DC)
 {
 	zval **ppzval;
 	va_list args_cp;
@@ -338,7 +338,7 @@ static void php_aware_user_event_trigger(int type TSRMLS_DC, const char *error_f
 	add_assoc_bool(event, "aware_event_trigger", 1);
 	
 	va_start(args, format);
-	php_aware_capture_error_ex(event, type, error_filename, error_lineno, 1, format, args);
+	php_aware_capture_error_ex(event, type, error_filename, error_lineno, 1, format, args TSRMLS_CC);
 	va_end(args);
 }
 
@@ -351,7 +351,7 @@ void php_aware_invoke_handler(int type TSRMLS_DC, const char *error_filename, co
 	array_init(event);
 	
 	va_start(args, format);
-	php_aware_capture_error_ex(event, type, error_filename, error_lineno, 1, format, args);
+	php_aware_capture_error_ex(event, type, error_filename, error_lineno, 1, format, args TSRMLS_CC);
 	va_end(args);
 }
 
@@ -391,7 +391,7 @@ void php_aware_capture_error(int type, const char *error_filename, const uint er
 		ALLOC_INIT_ZVAL(event);
 		array_init(event);
 
-		php_aware_capture_error_ex(event, type, error_filename, error_lineno, 1, format, args);
+		php_aware_capture_error_ex(event, type, error_filename, error_lineno, 1, format, args TSRMLS_CC);
 		AWARE_G(orig_error_cb)(type, error_filename, error_lineno, format, args);
 	} else {
 		AWARE_G(orig_error_cb)(type, error_filename, error_lineno, format, args);	
@@ -410,11 +410,12 @@ MY_AWARE_EXPORTS void php_aware_original_error_cb(int type TSRMLS_DC, const char
 
 	va_start(args, format);
 	
-	if (AWARE_G(orig_error_cb)) 
+	if (AWARE_G(orig_error_cb)) {
 		AWARE_G(orig_error_cb)(type, error_filename, error_lineno, format, args);
-	else 
+	} else {
 		zend_error_cb(type, error_filename, error_lineno, format, args);
-
+	}
+	
 	va_end(args);
 }
 
@@ -635,6 +636,32 @@ PHP_RSHUTDOWN_FUNCTION(aware)
 		php_aware_restore_error_handling(TSRMLS_C);
 	}
 	return SUCCESS;
+}
+
+static char *php_aware_mmap_error_page(const char *filename)
+{
+    char *ptr;
+    struct stat st_buf;
+    int fildes;
+    size_t filesize;
+    
+    if (stat(filename, &st_buf) == -1) {
+        return NULL;
+    }
+
+    fildes = open(filename, O_RDONLY);
+    
+    if (fildes == -1) {
+        return NULL;
+    }
+    
+    ptr = mmap(0, st_buf.st_size, PROT_READ, MAP_PRIVATE, fildes, 0);
+    (void) close(fildes);
+    
+    if (ptr == MAP_FAILED) {
+        return NULL;
+    }
+    return ptr;
 }
 
 /* {{{ PHP_MINIT_FUNCTION(aware) */
