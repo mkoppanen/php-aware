@@ -1,5 +1,30 @@
+# Available build options, you will need rpm-build >= 4.0.3 for this to work.
+# Example: rpmbuild -ba --with email aware.spec
+#
+#  Storage Options
+#  ===============
+#  --with email
+#  --with files
+#  --with snmp
+#  --with spread
+#  --with stomp
+#  --with tokyo
+#  --with zeromq2
+
+#
+# These setup the storage backends to off by default
+#
+%bcond_with email
+%bcond_with files
+%bcond_with snmp
+%bcond_with spread
+%bcond_with stomp
+%bcond_with tokyo
+%bcond_with zeromq2
+
+
 # Define version and release number
-%define version @PACKAGE_VERSION@
+%define version 0.1.1
 %define release 1
 
 Name:      php-aware
@@ -17,6 +42,25 @@ BuildRequires: php-devel, make, gcc, /usr/bin/phpize
 
 %description
 Monitoring extension for PHP
+
+%package devel
+Summary: Development headers for %{name}
+Group:   Web/Applications
+Requires: %{name} = %{version}-%{release}
+
+%description devel
+Development headers for %{name}
+
+### Conditional build for email
+%if %{with email}
+%package email
+Summary: Email storage engine for %{name}
+Group:   Web/Applications
+Requires: %{name} = %{version}-%{release}
+
+%description email
+%{name} backend implementation which sends email.
+%endif
 
 %prep
 %setup -q -n aware-%{version}
@@ -36,14 +80,31 @@ Monitoring extension for PHP
 # Preliminary extension ini
 echo "extension=aware.so" > %{buildroot}/%{_sysconfdir}/php.d/aware.ini
 
+%if %{with email}
+	pushd storage/email
+	/usr/bin/phpize && %configure && %{__make} %{?_smp_mflags}
+	%{__make} install INSTALL_ROOT=%{buildroot}
+	popd
+%endif
+
+
 %clean
 [ "%{buildroot}" != "/" ] && %{__rm} -rf %{buildroot}
 
 %files
 %{_libdir}/php/modules/aware.so
 %{_sysconfdir}/php.d/aware.ini
+
+%files devel
 %{_includedir}/php/ext/aware/php_aware.h
 %{_includedir}/php/ext/aware/php_aware_storage.h
+
+%if %{with email}
+%files email
+%{_libdir}/php/modules/aware-email.so
+%endif
+
+
 
 %changelog
 * Sat Dec 12 2009 Mikko Koppanen <mkoppanen@php.net>
