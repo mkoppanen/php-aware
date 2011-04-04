@@ -84,6 +84,39 @@ Requires: %{name} = %{version}-%{release}
 %{name} backend implementation which sends events as SNMP traps.
 %endif
 
+### Conditional build for spread
+%if %{with spread}
+%package spread
+Summary: Spread storage engine for %{name}
+Group:   Web/Applications
+Requires: %{name} = %{version}-%{release}
+
+%description Spread
+%{name} backend implementation which sends events via spread.
+%endif
+
+### Conditional build for stomp
+%if %{with stomp}
+%package stomp
+Summary: Stomp storage engine for %{name}
+Group:   Web/Applications
+Requires: %{name} = %{version}-%{release}
+
+%description stomp
+%{name} backend implementation which sends events via stomp.
+%endif
+
+### Conditional build for zeromq2
+%if %{with zeromq2}
+%package zeromq2
+Summary: zeromq2 storage engine for %{name}
+Group:   Web/Applications
+Requires: %{name} = %{version}-%{release}
+
+%description zeromq2
+%{name} backend implementation which sends events via zeromq2.
+%endif
+
 %prep
 %setup -q -n aware-%{version}
 
@@ -123,6 +156,27 @@ echo "extension=aware.so" > %{buildroot}/%{_sysconfdir}/php.d/aware.ini
 	popd
 %endif
 
+%if %{with spread}
+	pushd storage/spread
+	/usr/bin/phpize && %configure && %{__make} %{?_smp_mflags}
+	%{__make} install INSTALL_ROOT=%{buildroot}
+	popd
+%endif
+
+%if %{with stomp}
+	pushd storage/stomp
+	/usr/bin/phpize && %configure && %{__make} %{?_smp_mflags}
+	%{__make} install INSTALL_ROOT=%{buildroot}
+	popd
+%endif
+
+%if %{with zeromq2}
+	pushd storage/zeromq2
+	/usr/bin/phpize && %configure && %{__make} %{?_smp_mflags}
+	%{__make} install INSTALL_ROOT=%{buildroot}
+	popd
+%endif
+
 
 %clean
 [ "%{buildroot}" != "/" ] && %{__rm} -rf %{buildroot}
@@ -148,6 +202,21 @@ echo "extension=aware.so" > %{buildroot}/%{_sysconfdir}/php.d/aware.ini
 %if %{with snmp}
 %files snmp
 %{_libdir}/php/modules/aware_snmp.so
+%endif
+
+%if %{with spread}
+%files spread
+%{_libdir}/php/modules/aware_spread.so
+%endif
+
+%if %{with stomp}
+%files stomp
+%{_libdir}/php/modules/aware_stomp.so
+%endif
+
+%if %{with zeromq2}
+%files stomp
+%{_libdir}/php/modules/aware_zeromq2.so
 %endif
 
 
