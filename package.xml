@@ -37,11 +37,15 @@
    <file name="php_aware_storage.h" role="src" />
    <file name="php_aware_private.h" role="src" />
    <file name="php_aware_request.h" role="src" />
+   <file name="php_aware_uuid.h" role="src" />
+   <file name="php_aware_cache.h" role="src" />
    
    <!-- Source files -->
    <file name="aware.c" role="src" />
    <file name="aware_storage.c" role="src" />
    <file name="aware_request.c" role="src" />
+   <file name="aware_uuid.c" role="src" />
+   <file name="aware_cache.c" role="src" />
 
    <!-- misc files -->
    <file name="README" role="doc" />
