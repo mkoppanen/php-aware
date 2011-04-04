@@ -32,8 +32,8 @@
 # include "TSRM.h"
 #endif
 
-#include <ext/aware/php_aware.h>
-#include <ext/aware/php_aware_storage.h>
+#include "../../php_aware.h"
+#include "../../php_aware_storage.h"
 
 ZEND_BEGIN_MODULE_GLOBALS(aware_skeleton)
 	char *foobar;

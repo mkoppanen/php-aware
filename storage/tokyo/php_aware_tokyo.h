@@ -28,8 +28,8 @@
 # include "config.h"
 #endif
 
-#include <ext/aware/php_aware.h>
-#include <ext/aware/php_aware_storage.h>
+#include "../../php_aware.h"
+#include "../../php_aware_storage.h"
 
 #include <stdlib.h>
 #include <stdlib.h>
