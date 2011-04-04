@@ -73,6 +73,17 @@ Requires: %{name} = %{version}-%{release}
 %{name} backend implementation which stores events in files.
 %endif
 
+### Conditional build for snmp
+%if %{with snmp}
+%package snmp
+Summary: SNMP storage engine for %{name}
+Group:   Web/Applications
+Requires: %{name} = %{version}-%{release}
+
+%description snmp
+%{name} backend implementation which sends events as SNMP traps.
+%endif
+
 %prep
 %setup -q -n aware-%{version}
 
@@ -105,6 +116,13 @@ echo "extension=aware.so" > %{buildroot}/%{_sysconfdir}/php.d/aware.ini
 	popd
 %endif
 
+%if %{with snmp}
+	pushd storage/snmp
+	/usr/bin/phpize && %configure && %{__make} %{?_smp_mflags}
+	%{__make} install INSTALL_ROOT=%{buildroot}
+	popd
+%endif
+
 
 %clean
 [ "%{buildroot}" != "/" ] && %{__rm} -rf %{buildroot}
@@ -119,12 +137,17 @@ echo "extension=aware.so" > %{buildroot}/%{_sysconfdir}/php.d/aware.ini
 
 %if %{with email}
 %files email
-%{_libdir}/php/modules/aware-email.so
+%{_libdir}/php/modules/aware_email.so
 %endif
 
 %if %{with files}
 %files files
-%{_libdir}/php/modules/aware-files.so
+%{_libdir}/php/modules/aware_files.so
+%endif
+
+%if %{with snmp}
+%files snmp
+%{_libdir}/php/modules/aware_snmp.so
 %endif
 
 
