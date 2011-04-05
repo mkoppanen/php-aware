@@ -121,7 +121,7 @@ Requires: %{name} = %{version}-%{release}
 %setup -q -n aware-%{version}
 
 %build
-/usr/bin/phpize && %configure && %{__make} %{?_smp_mflags}
+/usr/bin/phpize && %configure -C && %{__make} %{?_smp_mflags}
 
 # Clean the buildroot so that it does not contain any stuff from previous builds
 [ "%{buildroot}" != "/" ] && %{__rm} -rf %{buildroot}
@@ -137,42 +137,42 @@ echo "extension=aware.so" > %{buildroot}/%{_sysconfdir}/php.d/aware.ini
 
 %if %{with email}
 	pushd storage/email
-	/usr/bin/phpize && %configure && %{__make} %{?_smp_mflags}
+	/usr/bin/phpize && cp ../../config.cache . && %configure -C && %{__make} %{?_smp_mflags}
 	%{__make} install INSTALL_ROOT=%{buildroot}
 	popd
 %endif
 
 %if %{with files}
 	pushd storage/files
-	/usr/bin/phpize && %configure && %{__make} %{?_smp_mflags}
+	/usr/bin/phpize && cp ../../config.cache . && %configure -C && %{__make} %{?_smp_mflags}
 	%{__make} install INSTALL_ROOT=%{buildroot}
 	popd
 %endif
 
 %if %{with snmp}
 	pushd storage/snmp
-	/usr/bin/phpize && %configure && %{__make} %{?_smp_mflags}
+	/usr/bin/phpize && cp ../../config.cache . && %configure -C && %{__make} %{?_smp_mflags}
 	%{__make} install INSTALL_ROOT=%{buildroot}
 	popd
 %endif
 
 %if %{with spread}
 	pushd storage/spread
-	/usr/bin/phpize && %configure && %{__make} %{?_smp_mflags}
+	/usr/bin/phpize && cp ../../config.cache . && %configure -C && %{__make} %{?_smp_mflags}
 	%{__make} install INSTALL_ROOT=%{buildroot}
 	popd
 %endif
 
 %if %{with stomp}
 	pushd storage/stomp
-	/usr/bin/phpize && %configure && %{__make} %{?_smp_mflags}
+	/usr/bin/phpize && cp ../../config.cache . && %configure -C && %{__make} %{?_smp_mflags}
 	%{__make} install INSTALL_ROOT=%{buildroot}
 	popd
 %endif
 
 %if %{with zeromq2}
 	pushd storage/zeromq2
-	/usr/bin/phpize && %configure && %{__make} %{?_smp_mflags}
+	/usr/bin/phpize && cp ../../config.cache . && %configure -C && %{__make} %{?_smp_mflags}
 	%{__make} install INSTALL_ROOT=%{buildroot}
 	popd
 %endif
