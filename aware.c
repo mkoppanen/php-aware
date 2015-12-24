@@ -295,7 +295,7 @@ void php_aware_capture_error_ex(zval *event, int type, const char *error_filenam
 		zval *btrace;
 		ALLOC_INIT_ZVAL(btrace);
 #if ZEND_MODULE_API_NO <= PHP_5_3_X_API_NO
-		zend_fetch_debug_backtrace(btrace, 0, 0 TSRMLS_CC);//,1000);
+		zend_fetch_debug_backtrace(btrace, 0, 0 TSRMLS_CC);
 #else
 		zend_fetch_debug_backtrace(btrace, 0, 0 TSRMLS_CC,1000);
 #endif
