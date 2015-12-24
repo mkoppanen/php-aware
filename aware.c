@@ -17,6 +17,7 @@
 */
 
 #include "php_aware_private.h"
+#include "php_aware.h"
 #include "Zend/zend_builtin_functions.h"
 #include "ext/standard/php_string.h"
 
@@ -294,7 +295,7 @@ void php_aware_capture_error_ex(zval *event, int type, const char *error_filenam
 	if (AWARE_G(log_backtrace)) {
 		zval *btrace;
 		ALLOC_INIT_ZVAL(btrace);
-#if ZEND_MODULE_API_NO <= PHP_5_3_X_API_NO
+#if PHP_API_VERSION <= 20090626
 		zend_fetch_debug_backtrace(btrace, 0, 0 TSRMLS_CC);
 #else
 // TODO: introduce a directive for the amount of stack frames returned instead of hard coded 1000?

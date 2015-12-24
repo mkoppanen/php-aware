@@ -37,10 +37,11 @@
 
 #include <sys/resource.h>
 
-#define PHP_5_3_X_API_NO                220090626
-#define PHP_5_4_X_API_NO                220100525
-#define PHP_5_5_X_API_NO                220121212
-#define PHP_5_6_X_API_NO                220131226
+#define PHP_5_3_X_API_NO                20090626
+#define PHP_5_3_X_API_NO                20090626
+#define PHP_5_4_X_API_NO                20100525
+#define PHP_5_5_X_API_NO                20121212
+#define PHP_5_6_X_API_NO                20131226
 
 
 /* Original error callback */
