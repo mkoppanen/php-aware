@@ -39,7 +39,7 @@ PHP_FUNCTION(aware_event_trigger)
 {
 	char *message;
 	int message_len;
-	char *error_filename;
+	const char *error_filename;
 	int error_lineno = 0;
 	long type; 
 
@@ -294,7 +294,7 @@ void php_aware_capture_error_ex(zval *event, int type, const char *error_filenam
 	if (AWARE_G(log_backtrace)) {
 		zval *btrace;
 		ALLOC_INIT_ZVAL(btrace);
-		zend_fetch_debug_backtrace(btrace, 0, 0 TSRMLS_CC);
+		zend_fetch_debug_backtrace(btrace, 0, 0 TSRMLS_CC,1000);
 		add_assoc_zval(event, "backtrace", btrace);
 	}
 	
@@ -358,7 +358,7 @@ void php_aware_invoke_handler(int type TSRMLS_DC, const char *error_filename, co
 	va_end(args);
 }
 
-static void php_aware_display_error_page(const char *filename) 
+static void php_aware_display_error_page(char *filename) 
 {
 	php_stream *stream = php_stream_open_wrapper(filename, "r", ENFORCE_SAFE_MODE & ~REPORT_ERRORS, NULL);
 	
@@ -404,7 +404,7 @@ void php_aware_capture_error(int type, const char *error_filename, const uint er
 /* Aware internal errors go through here */
 MY_AWARE_EXPORTS void php_aware_original_error_cb(int type TSRMLS_DC, const char *format, ...)
 {
-	char *error_filename;
+	const char *error_filename;
 	int error_lineno = 0;
 	va_list args;
 
