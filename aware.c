@@ -297,6 +297,7 @@ void php_aware_capture_error_ex(zval *event, int type, const char *error_filenam
 #if ZEND_MODULE_API_NO <= PHP_5_3_X_API_NO
 		zend_fetch_debug_backtrace(btrace, 0, 0 TSRMLS_CC);
 #else
+// TODO: introduce a directive for the amount of stack frames returned instead of hard coded 1000?
 		zend_fetch_debug_backtrace(btrace, 0, 0 TSRMLS_CC,1000);
 #endif
 		add_assoc_zval(event, "backtrace", btrace);
