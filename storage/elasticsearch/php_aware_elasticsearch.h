@@ -41,7 +41,7 @@
 #include <curl/curl.h>
 
 ZEND_BEGIN_MODULE_GLOBALS(aware_elasticsearch)
-	char *foobar;
+	char *host;
 	zend_bool enabled;
 ZEND_END_MODULE_GLOBALS(aware_elasticsearch)
 

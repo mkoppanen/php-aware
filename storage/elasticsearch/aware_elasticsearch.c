@@ -128,8 +128,6 @@ PHP_AWARE_STORE_FUNC(elasticsearch)
     struct curl_fetch_st *cf = &curl_fetch;                 /* pointer to fetch struct */
     struct curl_slist *headers = NULL;                      /* http headers to send with request */
 
-    /* url to test site */
-    char *url = "http://localhost:9200/kaltura/log";
 
     /* init curl handle */
     if ((ch = curl_easy_init()) == NULL) {
@@ -139,13 +137,6 @@ PHP_AWARE_STORE_FUNC(elasticsearch)
         return 1;
     }
 
-    /* set content type */
-    headers = curl_slist_append(headers, "Accept: application/json");
-    headers = curl_slist_append(headers, "Content-Type: application/json");
-
-	/*
-		Error body
-	*/
     /* set content type */
     headers = curl_slist_append(headers, "Accept: application/json");
     headers = curl_slist_append(headers, "Content-Type: application/json");
@@ -167,7 +158,7 @@ PHP_AWARE_STORE_FUNC(elasticsearch)
     curl_easy_setopt(ch, CURLOPT_POSTFIELDS, json_object_to_json_string(json));
 
     /* fetch page and capture return code */
-    rcode = curl_fetch_url(ch, url, cf);
+    rcode = curl_fetch_url(ch, AWARE_ELASTICSEARCH_G(host), cf);
 
     /* cleanup curl handle */
     curl_easy_cleanup(ch);
@@ -208,12 +199,12 @@ PHP_AWARE_DISCONNECT_FUNC(elasticsearch)
 }
 
 PHP_INI_BEGIN()
-	STD_PHP_INI_ENTRY("aware_elasticsearch.foobar", "somevalue", PHP_INI_PERDIR, OnUpdateString, foobar, zend_aware_elasticsearch_globals, aware_elasticsearch_globals)
+	STD_PHP_INI_ENTRY("aware_elasticsearch.host", "http://localhost:9200/php-aware", PHP_INI_SYSTEM, OnUpdateString, host, zend_aware_elasticsearch_globals, aware_elasticsearch_globals)
 PHP_INI_END()
 
 static void php_aware_elasticsearch_init_globals(zend_aware_elasticsearch_globals *aware_elasticsearch_globals)
 {
-	aware_elasticsearch_globals->foobar = NULL;	
+	aware_elasticsearch_globals->host = "http://localhost:9200/php-aware";	
 }
 
 /* {{{ PHP_MINIT_FUNCTION(aware_elasticsearch) */
