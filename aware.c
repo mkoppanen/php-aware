@@ -177,8 +177,8 @@ PHP_FUNCTION(aware_set_error_handler)
 
 			/* free previous error handler */
 			if (AWARE_G(user_error_handler)) {
-				zval_dtor(AWARE_G(user_error_handler));
-				FREE_ZVAL(AWARE_G(user_error_handler));
+				//zval_ptr_dtor(&AWARE_G(user_error_handler));
+				//FREE_ZVAL(AWARE_G(user_error_handler));
 			}
 			
 			ALLOC_INIT_ZVAL(AWARE_G(user_error_handler));
@@ -190,7 +190,7 @@ PHP_FUNCTION(aware_set_error_handler)
 			zval_dtor(EG(user_error_handler));
 			ZVAL_STRING(EG(user_error_handler), "__aware_error_handler_callback", 1);
 		} else {
-			zval_dtor(AWARE_G(user_error_handler));
+			zval_ptr_dtor(&AWARE_G(user_error_handler));
 			FREE_ZVAL(AWARE_G(user_error_handler));
 			AWARE_G(user_error_handler) = NULL;
 		}
@@ -203,8 +203,8 @@ PHP_FUNCTION(aware_restore_error_handler)
 		AWARE_G(orig_restore_error_handler)(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 
 		if (AWARE_G(user_error_handler)) {
-			zval_dtor(AWARE_G(user_error_handler));
-			FREE_ZVAL(AWARE_G(user_error_handler));
+			zval_ptr_dtor(&AWARE_G(user_error_handler));
+			//FREE_ZVAL(AWARE_G(user_error_handler));
 			AWARE_G(user_error_handler) = NULL;
 		}
 
@@ -220,8 +220,8 @@ PHP_FUNCTION(aware_restore_error_handler)
 				zend_ptr_stack_push(&AWARE_G(user_error_handlers), tmp);
 				
 				if (AWARE_G(user_error_handler)) {
-					zval_dtor(AWARE_G(user_error_handler));
-					FREE_ZVAL(AWARE_G(user_error_handler));
+					zval_ptr_dtor(&AWARE_G(user_error_handler));
+					//FREE_ZVAL(AWARE_G(user_error_handler));
 				}
 				ALLOC_INIT_ZVAL(AWARE_G(user_error_handler));
 				ZVAL_STRING(AWARE_G(user_error_handler), Z_STRVAL_P(tmp), 1);
@@ -618,8 +618,9 @@ static void php_aware_restore_error_handling(TSRMLS_D)
 	zend_ptr_stack_destroy(&AWARE_G(user_error_handlers));
 	
 	if (AWARE_G(user_error_handler)) {
-		zval_dtor(AWARE_G(user_error_handler));
-		FREE_ZVAL(AWARE_G(user_error_handler));
+		//zval_dtor(AWARE_G(user_error_handler));
+		//zval_ptr_dtor(&AWARE_G(user_error_handler));
+		//FREE_ZVAL(AWARE_G(user_error_handler));
 	}
 	
 	if (zend_hash_find(EG(function_table), "set_error_handler", sizeof("set_error_handler"), (void **)&orig_set_error_handler) == SUCCESS) {
