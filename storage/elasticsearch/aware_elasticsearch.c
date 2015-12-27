@@ -118,6 +118,12 @@ PHP_AWARE_GET_FUNC(elasticsearch)
 PHP_AWARE_STORE_FUNC(elasticsearch)
 {
     zval **ppzval;
+    /*const char *uuid; 
+    zval *event; 
+    long type; 
+    const char *error_filename;
+    long error_lineno;*/
+    
     CURL *ch;                                               /* curl handle */
     CURLcode rcode;                                         /* curl result code */
 
@@ -148,7 +154,11 @@ PHP_AWARE_STORE_FUNC(elasticsearch)
     /* build post data */
     json_object_object_add(json, "file", json_object_new_string(error_filename));
 //    json_object_object_add(json, "line_number", json_object_new_int(error_lineno));
-    json_object_object_add(json, "error", json_object_new_string(Z_STRVAL_PP(ppzval)));
+    if (zend_hash_find(Z_ARRVAL_P(event), "error_message", sizeof("error_message"), (void **) &ppzval) == SUCCESS) {
+	json_object_object_add(json, "error", json_object_new_string(Z_STRVAL_PP(ppzval)));
+    } else {
+	json_object_object_add(json, "error", json_object_new_string("No error message"));
+    }
     json_object_object_add(json, "userId", json_object_new_string("php-aware-elastic"));
     //efree(error_file_line);
 
@@ -178,9 +188,9 @@ PHP_AWARE_STORE_FUNC(elasticsearch)
         return AwareOperationFailed;
     }
 
-	if (zend_hash_find(Z_ARRVAL_P(event), "error_message", sizeof("error_message"), (void **) &ppzval) == SUCCESS) {
-	    return AwareOperationSuccess;
-	}
+	//if (zend_hash_find(Z_ARRVAL_P(event), "error_message", sizeof("error_message"), (void **) &ppzval) == SUCCESS) {
+	//}
+    return AwareOperationSuccess;
 }
 
 PHP_AWARE_GET_LIST_FUNC(elasticsearch)
@@ -199,12 +209,12 @@ PHP_AWARE_DISCONNECT_FUNC(elasticsearch)
 }
 
 PHP_INI_BEGIN()
-	STD_PHP_INI_ENTRY("aware_elasticsearch.host", "http://localhost:9200/php-aware", PHP_INI_SYSTEM, OnUpdateString, host, zend_aware_elasticsearch_globals, aware_elasticsearch_globals)
+	STD_PHP_INI_ENTRY("aware_elasticsearch.host", "http://localhost:9200/php-aware/events", PHP_INI_SYSTEM, OnUpdateString, host, zend_aware_elasticsearch_globals, aware_elasticsearch_globals)
 PHP_INI_END()
 
 static void php_aware_elasticsearch_init_globals(zend_aware_elasticsearch_globals *aware_elasticsearch_globals)
 {
-	aware_elasticsearch_globals->host = "http://localhost:9200/php-aware";	
+	aware_elasticsearch_globals->host = "http://localhost:9200/php-aware/events";	
 }
 
 /* {{{ PHP_MINIT_FUNCTION(aware_elasticsearch) */
