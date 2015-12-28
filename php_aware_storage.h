@@ -49,7 +49,7 @@ typedef enum _AwareModuleRegisterStatus {
 */
 #define PHP_AWARE_CONNECT_ARGS		TSRMLS_D
 #define PHP_AWARE_GET_ARGS			const char *uuid, zval *event TSRMLS_DC
-#define PHP_AWARE_STORE_ARGS		const char *uuid, zval *event, const char *error_filename, long error_lineno TSRMLS_DC
+#define PHP_AWARE_STORE_ARGS		const char *uuid, zval *event, const char *error_filename, long error_lineno TSRMLS_DC, long type
 #define PHP_AWARE_GET_LIST_ARGS		long start, long limit, zval *events TSRMLS_DC
 #define PHP_AWARE_DELETE_ARGS		const char *uuid TSRMLS_DC
 #define PHP_AWARE_DISCONNECT_ARGS	TSRMLS_D

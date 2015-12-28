@@ -198,7 +198,7 @@ void php_aware_storage_store(php_aware_storage_module *mod, const char *uuid, zv
 		return;
 	}
 
-	if (mod->store(uuid, event, error_filename, error_lineno TSRMLS_CC) == AwareOperationFailed) {
+	if (mod->store(uuid, event, error_filename, error_lineno TSRMLS_CC,type) == AwareOperationFailed) {
 		php_aware_original_error_cb(E_WARNING TSRMLS_CC, "Failed to store the event %s (%s)", uuid, mod->name);
 	}
 

@@ -118,13 +118,13 @@ PHP_AWARE_GET_FUNC(elasticsearch)
 
 PHP_AWARE_STORE_FUNC(elasticsearch)
 {
-    zval **ppzval;
     /*const char *uuid; 
     zval *event; 
     long type; 
     const char *error_filename;
     long error_lineno;*/
     
+    zval **ppzval;
     CURL *ch;                                               /* curl handle */
     CURLcode rcode;                                         /* curl result code */
     char hostname[255];
@@ -152,8 +152,6 @@ PHP_AWARE_STORE_FUNC(elasticsearch)
 
     /* create json object for post */
     json = json_object_new_object();
-    char *error_file_line;
-    spprintf(&error_file_line, MAXPATHLEN + 256, "%s:%ld", error_filename, error_lineno);
     /* build post data */
     if (zend_hash_find(Z_ARRVAL_P(event), "error_message", sizeof("error_message"), (void **) &ppzval) == SUCCESS) {
 	json_object_object_add(json, "error", json_object_new_string(Z_STRVAL_PP(ppzval)));
@@ -161,10 +159,13 @@ PHP_AWARE_STORE_FUNC(elasticsearch)
 	json_object_object_add(json, "error", json_object_new_string("No error message"));
     }
     json_object_object_add(json, "source", json_object_new_string("php-aware-elastic"));
+    char *error_file_line;
+    spprintf(&error_file_line, MAXPATHLEN + 256, "%s:%ld", error_filename, error_lineno);
     json_object_object_add(json, "file", json_object_new_string(error_file_line));
-    json_object_object_add(json, "hostname", json_object_new_string(hostname));
-    json_object_object_add(json, "timestamp", json_object_new_int(time(NULL)));
     efree(error_file_line);
+    json_object_object_add(json, "hostname", json_object_new_string(hostname));
+    json_object_object_add(json, "error_type", json_object_new_int((int)type));
+    json_object_object_add(json, "timestamp", json_object_new_int(time(NULL)));
 
     /* set curl options */
     curl_easy_setopt(ch, CURLOPT_CUSTOMREQUEST, "POST");
