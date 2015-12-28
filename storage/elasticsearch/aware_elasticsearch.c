@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5 / aware                                                |
    +----------------------------------------------------------------------+
-   | Copyright (c) 2009 Mikko Koppanen                                    |
+   | Copyright (c) Jess Portnoy                           		  |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -12,7 +12,8 @@
    | obtain it through the world-wide-web, please send a note to          |
    | license@php.net so we can mail you a copy immediately.               |
    +----------------------------------------------------------------------+
-   | Author: Mikko Kopppanen <mkoppanen@php.net>                          |
+   | Authors: 								  |
+   |	Jess Portnoy <jess.portnoy@kaltura.com>                           |
    +----------------------------------------------------------------------+
 */
 
@@ -126,6 +127,8 @@ PHP_AWARE_STORE_FUNC(elasticsearch)
     
     CURL *ch;                                               /* curl handle */
     CURLcode rcode;                                         /* curl result code */
+    char hostname[255];
+    gethostname(hostname,255);
 
     json_object *json;                                      /* json post body */
     enum json_tokener_error jerr = json_tokener_success;    /* json parse error */
@@ -159,6 +162,7 @@ PHP_AWARE_STORE_FUNC(elasticsearch)
     }
     json_object_object_add(json, "source", json_object_new_string("php-aware-elastic"));
     json_object_object_add(json, "file", json_object_new_string(error_file_line));
+    json_object_object_add(json, "hostname", json_object_new_string(hostname));
     json_object_object_add(json, "timestamp", json_object_new_int(time(NULL)));
     efree(error_file_line);
 

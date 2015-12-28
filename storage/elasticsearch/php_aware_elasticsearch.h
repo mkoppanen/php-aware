@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5 / aware                                                |
    +----------------------------------------------------------------------+
-   | Copyright (c) 2009 Mikko Koppanen                                    |
+   | Copyright (c) Jess Portnoy                           		  |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -12,7 +12,8 @@
    | obtain it through the world-wide-web, please send a note to          |
    | license@php.net so we can mail you a copy immediately.               |
    +----------------------------------------------------------------------+
-   | Author: Mikko Kopppanen <mkoppanen@php.net>                          |
+   | Authors: 								  |
+   |	Jess Portnoy <jess.portnoy@kaltura.com>                           |
    +----------------------------------------------------------------------+
 */
 
