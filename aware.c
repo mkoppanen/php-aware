@@ -523,6 +523,8 @@ PHP_INI_BEGIN()
 
 	STD_PHP_INI_ENTRY("aware.slow_request_threshold",	"0",	PHP_INI_PERDIR, OnUpdateLong,	slow_request_threshold,	zend_aware_globals, aware_globals)
 	STD_PHP_INI_ENTRY("aware.memory_usage_threshold",	"0",	PHP_INI_PERDIR, OnUpdateLong,	memory_usage_threshold,	zend_aware_globals, aware_globals)
+	STD_PHP_INI_ENTRY("aware.source_baseurl",	"https://github.com/youruser/yourrepo",	PHP_INI_ALL, OnUpdateString,	source_baseurl,	zend_aware_globals, aware_globals)
+	STD_PHP_INI_ENTRY("aware.appname",	"JaM",	PHP_INI_ALL, OnUpdateString,	appname,	zend_aware_globals, aware_globals)
 	
 	/* Display pretty error pages if display_errors=0 and the error is fatal */
 	STD_PHP_INI_ENTRY("aware.error_page",	NULL,	PHP_INI_PERDIR, OnUpdateString,	error_page,	zend_aware_globals, aware_globals)
@@ -564,6 +566,8 @@ PHP_GINIT_FUNCTION(aware)
 	aware_globals->orig_set_error_handler = NULL;
 	aware_globals->user_error_handler     = NULL;
 	
+	aware_globals->source_baseurl = "https://github.com/youruser/yourrepo";
+	aware_globals->appname = "JaM";
 	aware_globals->error_page = NULL;
 
 	php_aware_cache_init(&(aware_globals->s_cache));

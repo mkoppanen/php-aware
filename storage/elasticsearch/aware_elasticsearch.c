@@ -158,7 +158,11 @@ PHP_AWARE_STORE_FUNC(elasticsearch)
     } else {
 	json_object_object_add(json, "error", json_object_new_string("No error message"));
     }
-    json_object_object_add(json, "source", json_object_new_string("php-aware-elastic"));
+    json_object_object_add(json, "source", json_object_new_string(appname));
+    //char *source_url;
+    //spprintf(&source_url, 2048, "%s/%s#L%ld", source_baseurl,error_filename, error_lineno);
+    //json_object_object_add(json, "source_url", json_object_new_string(source_url));
+    //efree(source_url);
     char *error_file_line;
     spprintf(&error_file_line, MAXPATHLEN + 256, "%s:%ld", error_filename, error_lineno);
     json_object_object_add(json, "file", json_object_new_string(error_file_line));
