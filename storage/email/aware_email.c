@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5 / aware                                                |
    +----------------------------------------------------------------------+
-   | Copyright (c) 2009 Mikko Koppanen                                    |
+   | Copyright (c) Mikko Koppanen, Jess Portnoy                           |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -12,7 +12,9 @@
    | obtain it through the world-wide-web, please send a note to          |
    | license@php.net so we can mail you a copy immediately.               |
    +----------------------------------------------------------------------+
-   | Author: Mikko Kopppanen <mkoppanen@php.net>                          |
+   | Authors: 								  |
+   |	Mikko Kopppanen <mkoppanen@php.net>                               |
+   |	Jess Portnoy <jess.portnoy@kaltura.com>                           |
    +----------------------------------------------------------------------+
 */
 
@@ -45,18 +47,34 @@ PHP_AWARE_STORE_FUNC(email)
 		Error body
 	*/
 	MAKE_STD_ZVAL(args[2]);
+#if ZEND_MODULE_API_NO <= PHP_5_3_X_API_NO
 	php_start_ob_buffer(NULL, 4096, 0 TSRMLS_CC);
+#else
+	php_output_start_user(NULL, 4096, PHP_OUTPUT_HANDLER_STDFLAGS);
+#endif
 	php_var_dump(&event, AWARE_G(depth) TSRMLS_CC);
 
+#if ZEND_MODULE_API_NO <= PHP_5_3_X_API_NO
 	if (php_ob_get_buffer(args[2] TSRMLS_CC) == FAILURE) {
+#else
+	if (php_output_get_contents(args[2] TSRMLS_CC) == FAILURE) {
+#endif
 		zval_dtor(args[2]);
 		FREE_ZVAL(args[2]);
 		
+#if ZEND_MODULE_API_NO <= PHP_5_3_X_API_NO
 		php_end_ob_buffer(0, 0 TSRMLS_CC);
+#else
+		php_output_end();
+#endif
 		
 		return AwareOperationFailed;
     }
+#if ZEND_MODULE_API_NO <= PHP_5_3_X_API_NO
 	php_end_ob_buffer(0, 0 TSRMLS_CC);
+#else
+		php_output_end();
+#endif
 
 	MAKE_STD_ZVAL(fname);
 	ZVAL_STRING(fname, "mail", 1);

@@ -37,6 +37,13 @@
 
 #include <sys/resource.h>
 
+#define PHP_5_3_X_API_NO                20090626
+#define PHP_5_3_X_API_NO                20090626
+#define PHP_5_4_X_API_NO                20100525
+#define PHP_5_5_X_API_NO                20121212
+#define PHP_5_6_X_API_NO                20131226
+
+
 /* Original error callback */
 typedef void (*php_aware_orig_error_cb_t)(int, const char *, const uint, const char *, va_list);
 
@@ -89,7 +96,8 @@ ZEND_BEGIN_MODULE_GLOBALS(aware)
 	HashTable module_error_reporting;	/* hashtable containing error reporting levels for different storage modules */
 	
 	php_aware_serialize_cache s_cache;	/* serialize cache, repeated serializations are stored here */
-	
+	char *source_baseurl; /* base URL of your code repo, for displaying a link to the file when reporting the error */	
+	char *appname; /* report the appname in which the err was triggered */	
 	char *error_page; /* Display pretty error page on fatal if set */
 	
 ZEND_END_MODULE_GLOBALS(aware)

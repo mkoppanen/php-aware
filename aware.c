@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5 / aware                                                |
    +----------------------------------------------------------------------+
-   | Copyright (c) 2009 Mikko Koppanen                                    |
+   | Copyright (c) Mikko Koppanen, Jess Portnoy                           |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -12,11 +12,14 @@
    | obtain it through the world-wide-web, please send a note to          |
    | license@php.net so we can mail you a copy immediately.               |
    +----------------------------------------------------------------------+
-   | Author: Mikko Kopppanen <mkoppanen@php.net>                          |
+   | Authors: 								  |
+   |	Mikko Kopppanen <mkoppanen@php.net>                               |
+   |	Jess Portnoy <jess.portnoy@kaltura.com>                           |
    +----------------------------------------------------------------------+
 */
 
 #include "php_aware_private.h"
+#include "php_aware.h"
 #include "Zend/zend_builtin_functions.h"
 #include "ext/standard/php_string.h"
 
@@ -39,7 +42,7 @@ PHP_FUNCTION(aware_event_trigger)
 {
 	char *message;
 	int message_len;
-	char *error_filename;
+	const char *error_filename;
 	int error_lineno = 0;
 	long type; 
 
@@ -176,8 +179,8 @@ PHP_FUNCTION(aware_set_error_handler)
 
 			/* free previous error handler */
 			if (AWARE_G(user_error_handler)) {
-				zval_dtor(AWARE_G(user_error_handler));
-				FREE_ZVAL(AWARE_G(user_error_handler));
+				//zval_ptr_dtor(&AWARE_G(user_error_handler));
+				//FREE_ZVAL(AWARE_G(user_error_handler));
 			}
 			
 			ALLOC_INIT_ZVAL(AWARE_G(user_error_handler));
@@ -189,7 +192,7 @@ PHP_FUNCTION(aware_set_error_handler)
 			zval_dtor(EG(user_error_handler));
 			ZVAL_STRING(EG(user_error_handler), "__aware_error_handler_callback", 1);
 		} else {
-			zval_dtor(AWARE_G(user_error_handler));
+			zval_ptr_dtor(&AWARE_G(user_error_handler));
 			FREE_ZVAL(AWARE_G(user_error_handler));
 			AWARE_G(user_error_handler) = NULL;
 		}
@@ -202,8 +205,8 @@ PHP_FUNCTION(aware_restore_error_handler)
 		AWARE_G(orig_restore_error_handler)(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 
 		if (AWARE_G(user_error_handler)) {
-			zval_dtor(AWARE_G(user_error_handler));
-			FREE_ZVAL(AWARE_G(user_error_handler));
+			zval_ptr_dtor(&AWARE_G(user_error_handler));
+			//FREE_ZVAL(AWARE_G(user_error_handler));
 			AWARE_G(user_error_handler) = NULL;
 		}
 
@@ -219,8 +222,8 @@ PHP_FUNCTION(aware_restore_error_handler)
 				zend_ptr_stack_push(&AWARE_G(user_error_handlers), tmp);
 				
 				if (AWARE_G(user_error_handler)) {
-					zval_dtor(AWARE_G(user_error_handler));
-					FREE_ZVAL(AWARE_G(user_error_handler));
+					zval_ptr_dtor(&AWARE_G(user_error_handler));
+					//FREE_ZVAL(AWARE_G(user_error_handler));
 				}
 				ALLOC_INIT_ZVAL(AWARE_G(user_error_handler));
 				ZVAL_STRING(AWARE_G(user_error_handler), Z_STRVAL_P(tmp), 1);
@@ -294,7 +297,12 @@ void php_aware_capture_error_ex(zval *event, int type, const char *error_filenam
 	if (AWARE_G(log_backtrace)) {
 		zval *btrace;
 		ALLOC_INIT_ZVAL(btrace);
+#if PHP_API_VERSION <= PHP_5_3_X_API_NO
 		zend_fetch_debug_backtrace(btrace, 0, 0 TSRMLS_CC);
+#else
+// TODO: introduce a directive for the amount of stack frames returned instead of hard coded 1000?
+		zend_fetch_debug_backtrace(btrace, 0, 0 TSRMLS_CC,1000);
+#endif
 		add_assoc_zval(event, "backtrace", btrace);
 	}
 	
@@ -358,7 +366,7 @@ void php_aware_invoke_handler(int type TSRMLS_DC, const char *error_filename, co
 	va_end(args);
 }
 
-static void php_aware_display_error_page(const char *filename) 
+static void php_aware_display_error_page(char *filename) 
 {
 	php_stream *stream = php_stream_open_wrapper(filename, "r", ENFORCE_SAFE_MODE & ~REPORT_ERRORS, NULL);
 	
@@ -404,7 +412,7 @@ void php_aware_capture_error(int type, const char *error_filename, const uint er
 /* Aware internal errors go through here */
 MY_AWARE_EXPORTS void php_aware_original_error_cb(int type TSRMLS_DC, const char *format, ...)
 {
-	char *error_filename;
+	const char *error_filename;
 	int error_lineno = 0;
 	va_list args;
 
@@ -515,6 +523,8 @@ PHP_INI_BEGIN()
 
 	STD_PHP_INI_ENTRY("aware.slow_request_threshold",	"0",	PHP_INI_PERDIR, OnUpdateLong,	slow_request_threshold,	zend_aware_globals, aware_globals)
 	STD_PHP_INI_ENTRY("aware.memory_usage_threshold",	"0",	PHP_INI_PERDIR, OnUpdateLong,	memory_usage_threshold,	zend_aware_globals, aware_globals)
+	STD_PHP_INI_ENTRY("aware.source_baseurl",	"https://github.com/youruser/yourrepo",	PHP_INI_ALL, OnUpdateString,	source_baseurl,	zend_aware_globals, aware_globals)
+	STD_PHP_INI_ENTRY("aware.appname",	"JaM",	PHP_INI_ALL, OnUpdateString,	appname,	zend_aware_globals, aware_globals)
 	
 	/* Display pretty error pages if display_errors=0 and the error is fatal */
 	STD_PHP_INI_ENTRY("aware.error_page",	NULL,	PHP_INI_PERDIR, OnUpdateString,	error_page,	zend_aware_globals, aware_globals)
@@ -556,6 +566,8 @@ PHP_GINIT_FUNCTION(aware)
 	aware_globals->orig_set_error_handler = NULL;
 	aware_globals->user_error_handler     = NULL;
 	
+	aware_globals->source_baseurl = "https://github.com/youruser/yourrepo";
+	aware_globals->appname = "JaM";
 	aware_globals->error_page = NULL;
 
 	php_aware_cache_init(&(aware_globals->s_cache));
@@ -612,8 +624,9 @@ static void php_aware_restore_error_handling(TSRMLS_D)
 	zend_ptr_stack_destroy(&AWARE_G(user_error_handlers));
 	
 	if (AWARE_G(user_error_handler)) {
-		zval_dtor(AWARE_G(user_error_handler));
-		FREE_ZVAL(AWARE_G(user_error_handler));
+		//zval_dtor(AWARE_G(user_error_handler));
+		//zval_ptr_dtor(&AWARE_G(user_error_handler));
+		//FREE_ZVAL(AWARE_G(user_error_handler));
 	}
 	
 	if (zend_hash_find(EG(function_table), "set_error_handler", sizeof("set_error_handler"), (void **)&orig_set_error_handler) == SUCCESS) {
